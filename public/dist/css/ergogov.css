@@ -1,0 +1,370 @@
+/* ═══════════════════════════════════════════════════════════════
+   ergo.gov — Design Override
+   Substitui o tema Rubick Admin pelo novo visual ergo.gov
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --g-950: #0A2A1C; --g-900: #0F3D2A; --g-800: #14532D; --g-700: #1F6B43;
+  --g-600: #2D8659; --g-500: #3DA47E; --g-400: #5FB894; --g-300: #8FCDB1;
+  --g-200: #C2E2D1; --g-100: #DCEFE2; --g-50: #E7F4EC; --g-25: #F2F9F4;
+  --ink-900: #0F1A14; --ink-800: #1A2620; --ink-700: #2A3D33;
+  --ink-600: #4A5D53; --ink-500: #6B7B72; --ink-400: #94A199;
+  --ink-300: #BFC9C2; --ink-200: #DBE2DD; --ink-100: #ECF0EE;
+  --ink-50: #F5F8F6; --white: #FFFFFF;
+  --risk-high-bg: #FEF1F1; --risk-high-fg: #B91C1C; --risk-high-bd: #FCA5A5;
+  --risk-med-bg: #FFF7E6; --risk-med-fg: #B45309; --risk-med-bd: #FBBF24;
+  --risk-low-bg: #E7F4EC; --risk-low-fg: #15703D; --risk-low-bd: #5FB894;
+  --canvas: #F5F8F6; --surface: #FFFFFF;
+  --sidebar: #0F3D2A; --sidebar-2: #0A2A1C;
+  --sidebar-line: rgba(255,255,255,0.08);
+  --sidebar-fg: #DCEFE2; --sidebar-fg-muted: rgba(220,239,226,0.6);
+  --line-1: #ECF0EE; --line-2: #DBE2DD; --line-3: #BFC9C2;
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* ── Reset global ── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; background: var(--canvas); }
+body {
+  font-family: var(--font-sans) !important;
+  background: var(--canvas) !important;
+  color: var(--ink-800);
+  margin: 0; padding: 0;
+}
+
+/* ── Top bar (banda verde escuro no topo) ── */
+.border-b.border-theme-29,
+.top-bar-boxed {
+  background: var(--g-900) !important;
+  border-color: var(--g-800) !important;
+  padding: 0 24px !important;
+  height: 56px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+.top-bar-boxed a.text-white {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.top-bar-boxed a.text-white span.font-bold {
+  color: var(--g-400);
+}
+
+/* ── Sidebar ── */
+.side-nav {
+  background: var(--sidebar) !important;
+  width: 220px !important;
+  min-height: calc(100vh - 56px);
+  padding: 16px 0 !important;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-right: 1px solid var(--sidebar-line);
+}
+
+.side-menu {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 9px 16px !important;
+  border-radius: 0 !important;
+  color: var(--sidebar-fg-muted) !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  transition: all 0.15s !important;
+  border-left: 3px solid transparent !important;
+  margin: 0 !important;
+}
+.side-menu:hover {
+  background: rgba(255,255,255,0.07) !important;
+  color: var(--sidebar-fg) !important;
+  border-left-color: var(--g-400) !important;
+}
+.side-menu.side-menu-active,
+.side-menu--active {
+  background: rgba(255,255,255,0.1) !important;
+  color: var(--white) !important;
+  border-left-color: var(--g-400) !important;
+  font-weight: 600 !important;
+}
+.side-menu__icon { width: 20px; height: 20px; flex-shrink: 0; }
+.side-menu__icon i, .side-menu__icon span { font-size: 18px !important; }
+.side-menu__title { font-size: 13px !important; }
+
+/* Sub-menu items */
+.side-nav ul { padding: 0; list-style: none; margin: 0; }
+.side-nav ul .side-menu {
+  padding-left: 44px !important;
+  font-size: 12.5px !important;
+  color: var(--sidebar-fg-muted) !important;
+}
+
+/* ── Main content area ── */
+.content {
+  flex: 1;
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  padding: 28px 32px !important;
+  background: var(--canvas);
+}
+
+/* ── Cards / Box ── */
+.box {
+  background: var(--white) !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--line-1) !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+}
+
+/* ── Buttons ── */
+.btn {
+  border-radius: 8px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 7px 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  transition: all 0.15s !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+}
+.btn-primary {
+  background: var(--g-700) !important;
+  border-color: var(--g-700) !important;
+  color: var(--white) !important;
+}
+.btn-primary:hover {
+  background: var(--g-600) !important;
+  border-color: var(--g-600) !important;
+  color: var(--white) !important;
+}
+.btn-secondary {
+  background: var(--white) !important;
+  border: 1px solid var(--line-2) !important;
+  color: var(--ink-700) !important;
+}
+.btn-danger {
+  background: #DC2626 !important;
+  border-color: #DC2626 !important;
+  color: var(--white) !important;
+}
+.btn-danger:hover { background: #B91C1C !important; }
+
+/* ── Forms ── */
+.form-control, input[type=text], input[type=email], input[type=number],
+input[type=password], input[type=date], select, textarea {
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  border: 1px solid var(--line-2) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  background: var(--white) !important;
+  color: var(--ink-800) !important;
+  transition: border-color 0.15s !important;
+  width: 100%;
+}
+.form-control:focus, input:focus, select:focus, textarea:focus {
+  outline: none !important;
+  border-color: var(--g-600) !important;
+  box-shadow: 0 0 0 3px rgba(45,134,89,0.12) !important;
+}
+label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--ink-600) !important;
+  margin-bottom: 4px !important;
+  display: block;
+}
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: var(--g-900) !important;
+  color: var(--white) !important;
+  padding: 10px 14px !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none !important;
+}
+tbody td {
+  padding: 10px 14px !important;
+  border-bottom: 1px solid var(--line-1) !important;
+  color: var(--ink-700) !important;
+  vertical-align: middle;
+}
+tbody tr:hover { background: var(--g-25) !important; }
+
+/* ── Headings ── */
+h1, h2, h3, h4 { font-family: var(--font-sans) !important; font-weight: 700; color: var(--ink-900); }
+h1 { font-size: 24px; letter-spacing: -0.02em; }
+h2 { font-size: 20px; }
+h3 { font-size: 16px; }
+.intro-y { animation: none !important; }
+
+/* ── Badges / Tags ── */
+.badge, .eg-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
+}
+.badge-success, .badge-green { background: var(--risk-low-bg); color: var(--risk-low-fg); }
+.badge-danger,  .badge-red   { background: var(--risk-high-bg); color: var(--risk-high-fg); }
+.badge-warning, .badge-yellow{ background: var(--risk-med-bg); color: var(--risk-med-fg); }
+
+/* ── Alerts ── */
+.alert { border-radius: 8px !important; font-family: var(--font-sans) !important; padding: 12px 16px !important; }
+.alert-danger { background: var(--risk-high-bg) !important; color: var(--risk-high-fg) !important; border-color: var(--risk-high-bd) !important; }
+.alert-success { background: var(--risk-low-bg) !important; color: var(--risk-low-fg) !important; border-color: var(--risk-low-bd) !important; }
+
+/* ── Layout wrapper ── */
+.flex { display: flex; }
+
+/* ── Progress bars ── */
+.progress { border-radius: 20px; background: var(--line-1); overflow: hidden; height: 6px; }
+.progress-bar { background: var(--g-600); border-radius: 20px; }
+
+/* ── Dropdown menus ── */
+.dropdown-menu, .dropdown-menu__content {
+  border-radius: 10px !important;
+  border: 1px solid var(--line-2) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10) !important;
+  background: var(--white) !important;
+  padding: 4px !important;
+}
+.dropdown-menu a {
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  color: var(--ink-700) !important;
+  padding: 7px 12px !important;
+}
+.dropdown-menu a:hover { background: var(--g-25) !important; color: var(--g-700) !important; }
+
+/* ── Modal ── */
+.modal-content { border-radius: 14px !important; border: none !important; box-shadow: 0 8px 32px rgba(0,0,0,0.12) !important; }
+.modal-header { border-bottom: 1px solid var(--line-1) !important; padding: 16px 20px !important; }
+.modal-title { font-family: var(--font-sans) !important; font-weight: 700 !important; font-size: 16px !important; }
+.modal-footer { border-top: 1px solid var(--line-1) !important; }
+
+/* ── Risk color utilities ── */
+.risk-high { color: var(--risk-high-fg) !important; }
+.risk-med  { color: var(--risk-med-fg) !important; }
+.risk-low  { color: var(--risk-low-fg) !important; }
+
+/* ── Mobile menu override ── */
+.mobile-menu { background: var(--sidebar) !important; }
+.mobile-menu .menu { color: var(--sidebar-fg-muted) !important; padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+.mobile-menu .menu:hover { color: var(--white) !important; }
+
+/* ── Page title section ── */
+.intro-y.flex.items-center.mt-8 h2 {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: var(--ink-900) !important;
+}
+
+/* ── Grid layout ── */
+.grid { display: grid; }
+.grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.col-span-12 { grid-column: span 12; }
+.col-span-4 { grid-column: span 4; }
+.col-span-6 { grid-column: span 6; }
+.gap-6 { gap: 24px; }
+
+/* ── Utilities ── */
+.mt-5 { margin-top: 20px; }
+.mt-8 { margin-top: 32px; }
+.mt-10 { margin-top: 40px; }
+.mr-2 { margin-right: 8px; margin-left: 0 !important; }
+.mb-4 { margin-bottom: 16px; }
+.p-5 { padding: 20px; }
+.px-5 { padding-left: 20px; padding-right: 20px; }
+.py-5 { padding-top: 20px; padding-bottom: 20px; }
+.font-medium { font-weight: 500; }
+.font-bold { font-weight: 700; }
+.text-gray-600 { color: var(--ink-500) !important; }
+.text-lg { font-size: 18px; }
+.rounded-full { border-radius: 9999px; }
+.image-fit img { object-fit: cover; }
+.w-16 { width: 64px; } .h-16 { height: 64px; }
+.w-full { width: 100%; }
+.text-center { text-align: center; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.flex-col { flex-direction: column; }
+.justify-between { justify-content: space-between; }
+.block { display: block; }
+.hidden { display: none; }
+.shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.shadow-md { box-shadow: 0 2px 8px rgba(0,0,0,0.10); }
+.rounded-md { border-radius: 8px; }
+.text-xs { font-size: 12px; }
+.text-sm { font-size: 13px; }
+.text-white { color: var(--white) !important; }
+.bg-white { background: var(--white) !important; }
+.border { border: 1px solid var(--line-2); }
+.border-t { border-top: 1px solid var(--line-1); }
+.overflow-hidden { overflow: hidden; }
+.py-3 { padding-top: 12px; padding-bottom: 12px; }
+.absolute { position: absolute; }
+.relative { position: relative; }
+.right-0 { right: 0; }
+.top-0 { top: 0; }
+.mr-5 { margin-right: 20px; }
+.mt-3 { margin-top: 12px; }
+.lg\:ml-4 { margin-left: 16px; }
+.lg\:text-left { text-align: left; }
+.lg\:flex-row { flex-direction: row; }
+.lg\:mt-0 { margin-top: 0; }
+
+/* ── CRITICAL FIX: Override Rubick's fixed width that breaks layout ── */
+.content {
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+    padding: 28px 32px !important;
+    overflow-x: auto !important;
+}
+
+/* Fix Rubick's body padding that adds unwanted space */
+body.py-5 {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Ensure the flex layout works */
+.flex {
+    display: flex !important;
+}
+
+/* Fix intro-y animation that can hide content */
+.intro-y {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+}
+
+/* Fix grid columns that Rubick uses */
+.grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+@media (min-width: 768px) {
+    .md\:col-span-6 { grid-column: span 6; }
+    .md\:col-span-4 { grid-column: span 4; }
+}
+@media (min-width: 1024px) {
+    .lg\:col-span-4 { grid-column: span 4; }
+    .lg\:col-span-6 { grid-column: span 6; }
+    .lg\:col-span-12 { grid-column: span 12; }
+}

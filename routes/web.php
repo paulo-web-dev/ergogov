@@ -108,7 +108,7 @@ Route::get('/info/imprime/dashboardarp/empresa/{id}', [EmpresaController::class,
 Route::post('/cadastrar/empresa', [EmpresaController::class, 'cadempresa'])->name('cadempresa');
 Route::post('/update/empresa', [EmpresaController::class, 'updempresa'])->name('updempresa');
 Route::post('/alteracao/ordem/setor', [EmpresaController::class, 'alteraordem'])->name('alteraordem-setor');
-Route::post('/alteracao/mapeamento', [EmpresaController::class, 'alteramapeamento'])->name('alteraordem-setor');
+Route::post('/alteracao/mapeamento', [EmpresaController::class, 'alteramapeamento'])->name('alteraordem-setormap');
 Route::post('/alteracao/plano', [EmpresaController::class, 'alteraplano'])->name('alteraordem-plano');
 Route::get('/empresa/{id}/arp/dashboard',  [ArpDashboardController::class, 'dashboard'])->name('arp.dashboard');
 Route::get('/empresa/{id}/arp/dados-json', [ArpDashboardController::class, 'dadosJson'])->name('arp.dados-json');

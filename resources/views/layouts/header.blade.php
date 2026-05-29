@@ -169,7 +169,7 @@
     {{-- ── Top Bar ── --}}
     <header class="egov-topbar">
         <a href="{{ route('home') }}" class="egov-topbar-logo">
-            ergo<span class="dot">.</span><span class="gov">gov</span>
+            Avalia<span class="dot">.</span><span class="gov">One</span>
         </a>
         <span style="color:rgba(255,255,255,0.3); font-size:13px; font-family:'Outfit',sans-serif;">
             Sistema de Gestão Ergonômica
@@ -294,7 +294,7 @@
                 </a>
             </div>
 
-            <div class="egov-sidebar-footer">ergo.gov v2.0</div>
+            <div class="egov-sidebar-footer">Avalia.One v2.0</div>
         </aside>
 
         {{-- ── Main Content ── --}}

@@ -260,7 +260,7 @@ table.rel tr:hover td { background: var(--verde5); }
 {{-- ── Print bar ── --}}
 <div class="print-bar">
   <span>
-    <strong>ergo.gov</strong> · Relatório ARP — {{ $empresa->nome }}
+    <strong>Avalia.One</strong> · Relatório ARP — {{ $empresa->nome }}
   </span>
   <div style="display:flex;gap:8px;">
     <button onclick="window.print()">⬇ Imprimir / Salvar PDF</button>
@@ -279,7 +279,7 @@ table.rel tr:hover td { background: var(--verde5); }
     @if($identidade->foto_empresa)
       <img src="{{ url('fotos-identidade/'.$identidade->foto_empresa) }}" alt="Logo" class="capa-logo-empresa">
     @endif
-    <div class="capa-wordmark">ergo<span>.</span>gov</div>
+    <div class="capa-wordmark">Avalia<span>.</span>One</div>
   </div>
 
   <div class="capa-corpo">
@@ -322,7 +322,7 @@ table.rel tr:hover td { background: var(--verde5); }
   </div>
 
   <div class="capa-rodape">
-    <span>ergo.gov — Sistema de Gestão Ergonômica</span>
+    <span>Avalia.One — Sistema de Gestão Ergonômica</span>
     <span>Gerado em {{ now()->format('d/m/Y \à\s H:i') }}</span>
     @if($empresa->responsavel)
     <span>Responsável: {{ $empresa->responsavel }}</span>
@@ -796,7 +796,7 @@ table.rel tr:hover td { background: var(--verde5); }
 </div>
 
 <div class="page-footer">
-  ergo.gov — Sistema de Gestão Ergonômica &nbsp;|&nbsp;
+  Avalia.One — Sistema de Gestão Ergonômica &nbsp;|&nbsp;
   Relatório ARP — {{ $empresa->nome }} &nbsp;|&nbsp;
   Gerado em {{ now()->format('d/m/Y \à\s H:i') }}
 </div>

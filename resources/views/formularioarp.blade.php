@@ -312,7 +312,7 @@
 
     {{-- Top bar --}}
     <header class="arp-topbar">
-        <a href="#" class="arp-wordmark">ergo<span class="dot">.</span><span class="gov">gov</span></a>
+        <a href="#" class="arp-wordmark">Avalia<span class="dot">.</span><span class="gov">One</span></a>
         <span class="arp-badge">Avaliação de Riscos Psicossociais</span>
     </header>
 

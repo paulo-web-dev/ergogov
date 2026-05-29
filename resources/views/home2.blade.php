@@ -47,9 +47,9 @@
                 <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#2D8659;margin-bottom:6px;">AET</div>
                 <div style="font-size:15px;font-weight:600;color:#0F1A14;margin-bottom:6px;">Análise Ergonômica do Trabalho</div>
                 <div style="font-size:12.5px;color:#6B7B72;">Mapeie áreas, setores e postos. Aplique RULA, OWAS, NIOSH, KIM e gere laudos.</div>
-            </div>
+            </div> 
         </a>
-        <a href="{{ route('show-empresas-arp') }}" style="text-decoration:none;">
+        <a href="{{ route('show-empresas') }}" style="text-decoration:none;">
             <div class="box" style="padding:24px;transition:all 0.15s;" onmouseover="this.style.borderColor='#5FB894'" onmouseout="this.style.borderColor='#ECF0EE'">
                 <div style="width:40px;height:40px;background:linear-gradient(135deg,#1F6B70,#4FB5A6);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 6c-4 0-7 3-7 6 0 2.5 1.2 4.5 3 5.5v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3c1.8-1 3-3 3-5.5 0-3-3-6-7-6Z"/></svg>

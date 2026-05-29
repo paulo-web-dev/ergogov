@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>ergo.gov — Login</title>
+    <title>Avalia.One — Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -158,7 +158,7 @@
 <body>
 
 <div class="login-left">
-    <div class="login-wordmark">ergo<span class="dot">.</span><span class="gov">gov</span></div>
+    <div class="login-wordmark">Avalia<span class="dot">.</span><span class="gov">One</span></div>
     <p class="login-tagline">Análise Ergonômica do Trabalho — simplificada e digital</p>
     <span class="login-badge">✦ Conforme NR-17 · Portaria MTE 423/2021</span>
 </div>
@@ -191,7 +191,7 @@
             <button type="submit" class="btn-login">Entrar</button>
         </form>
 
-        <p class="login-footer">ergo.gov © {{ date('Y') }} · Sistema de Gestão Ergonômica</p>
+        <p class="login-footer">avalia.one © {{ date('Y') }} · Sistema de Gestão Ergonômica</p>
     </div>
 </div>
 

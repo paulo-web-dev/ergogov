@@ -93,7 +93,9 @@ Route::get('/inscricao/{plano}', [InscricaoController::class, 'inscricaoplano'])
 Route::post('/cad/inscricao', [InscricaoController::class, 'cadInscricao'])->name('cad-inscricao');
 
 //Rotas Perinentes a cadastro de empresas
-Route::get('/empresas', [EmpresaController::class, 'show'])->name('show-empresas');
+Route::get('/empresas', [EmpresaController::class, 'show'])->name('show-empresas');  
+Route::get('/empresas', [EmpresaController::class, 'show'])->name('show-empresas-arp');
+
 Route::get('/ajusta/mapeamento', [EmpresaController::class, 'ajustamapeamento'])->name('ajustamapeamento');
 Route::get('/form/empresa', [EmpresaController::class, 'formempresa'])->name('formempresa');
 Route::get('/info/empresa/{id}', [EmpresaController::class, 'infoempresa'])->name('infoempresa'); 

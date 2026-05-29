@@ -115,7 +115,7 @@
             @csrf
 
             <div class="login-logo">
-                <img src="{{ url('avalia.one.png') }}" alt="Ergo.One">
+                <img src="{{ url('avalia.one.png') }}" alt=" Avalia.One">
             </div>
 
             <div class="login-title">

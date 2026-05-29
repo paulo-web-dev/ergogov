@@ -27,6 +27,8 @@
         @else
            <a href="{{ route('form-rodape', ['idempresa' => $empresa->id]) }}" class="btn btn-primary shadow-md mr-2" style="margin: 5px"><i data-feather="plus" class="w-4 h-4 mr-2"></i> Cadastrar Rodapé</a>  
         @endif
+        <a href="{{ route('arp.dashboard', ['id' => $empresa->id]) }}" class="btn btn-primary shadow-md mr-2" style="margin: 5px"><i data-feather="plus" class="w-4 h-4 mr-2"></i> Dashboard ARP</a>  
+        <a href="{{ route('relatorio.arp', ['id' => $empresa->id]) }}" class="btn btn-primary shadow-md mr-2" style="margin: 5px"><i data-feather="plus" class="w-4 h-4 mr-2"></i> Relatório ARP</a>  
      </div>
     </div>
     <div class="grid grid-cols-12 gap-6 mt-5">

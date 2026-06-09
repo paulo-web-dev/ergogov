@@ -55,6 +55,8 @@ use App\Http\Controllers\ArpSubSetoresController;
 use App\Http\Controllers\ArpDashboardController;
 use App\Http\Controllers\RelatorioArpController;
 use App\Http\Controllers\ArpSetoresController;
+use App\Http\Controllers\ColaboradorArpController;
+use App\Http\Controllers\ArpConviteController;
 use App\Http\Controllers\DiscController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -77,6 +79,9 @@ Route::get('/', function () {
 
 
 //*Formulário de ARP
+Route::get('/pesquisa/arp/{token}',         [ArpConviteController::class, 'formToken'])->name('form-arp-token');
+Route::post('/pesquisa/arp/responder',      [ArpConviteController::class, 'cadFormToken'])->name('cad-form-arp-token');
+
 Route::get('/formulario/arp/{id}', [ArpController::class, 'formArp'])->name('form-arp');
 Route::post('/formulario/cad/respostas/arp', [ArpController::class, 'cadForm'])->name('cad-form-arp');
 Route::get('/formulario/enviado/arp', [ArpController::class, 'formArpEnviado'])->name('form-arp-enviado');
@@ -117,6 +122,38 @@ Route::get('/empresa/{id}/arp/dados-json', [ArpDashboardController::class, 'dado
 Route::get('/empresa/{id}/relatorio/arp', [RelatorioArpController::class, 'gerar'])->name('relatorio.arp');
 //Rotas Referentes a empresas ARP
 Route::middleware(['auth', 'power:11'])->group(function () {
+
+
+    Route::get('/empresa/{id}/arp/colaboradores',
+    [ColaboradorArpController::class, 'index'])->name('arp.colaboradores.index');
+
+// Cadastro individual
+Route::get('/empresa/{id}/arp/colaboradores/novo',
+    [ColaboradorArpController::class, 'create'])->name('arp.colaboradores.create');
+Route::post('/empresa/{id}/arp/colaboradores',
+    [ColaboradorArpController::class, 'store'])->name('arp.colaboradores.store');
+
+// Importação em lote
+Route::post('/empresa/{id}/arp/colaboradores/importar',
+    [ColaboradorArpController::class, 'importarLote'])->name('arp.colaboradores.importar');
+
+// Ações em colaborador individual
+Route::patch('/arp/colaboradores/{id}/status',
+    [ColaboradorArpController::class, 'toggleStatus'])->name('arp.colaboradores.status');
+Route::delete('/arp/colaboradores/{id}',
+    [ColaboradorArpController::class, 'destroy'])->name('arp.colaboradores.destroy');
+
+// Link individual de convite
+Route::get('/arp/colaboradores/{id}/link',
+    [ColaboradorArpController::class, 'linkConvite'])->name('arp.colaboradores.link');
+
+// Ações em massa
+Route::post('/empresa/{id}/arp/convites/criar',
+    [ColaboradorArpController::class, 'criarConvites'])->name('arp.convites.criar');
+Route::post('/empresa/{id}/arp/convites/disparar',
+    [ColaboradorArpController::class, 'dispararEmails'])->name('arp.convites.disparar');
+Route::post('/empresa/{id}/arp/convites/reenviar',
+    [ColaboradorArpController::class, 'reenviarPendentes'])->name('arp.convites.reenviar');
 
     Route::get('/arp/empresas', [EmpresaController::class, 'showarp'])->name('show-empresasarp');
     Route::get('/arp/form/empresa', [EmpresaController::class, 'formempresaarp'])->name('formempresaarp');

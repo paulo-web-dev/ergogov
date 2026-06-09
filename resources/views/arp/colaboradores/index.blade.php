@@ -222,6 +222,17 @@
         </td>
         <td style="padding:13px 18px;text-align:center;">
           <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+            {{-- Envio individual (apenas se não respondeu) --}}
+            @if($statusConvite !== 'respondido')
+            <form method="POST" action="{{ route('arp.colaboradores.enviar', $c->id) }}" style="display:inline;">
+              @csrf
+              <button type="submit" title="Enviar e-mail agora"
+                style="padding:5px 10px;background:#E7F4EC;border:1px solid #5FB894;border-radius:6px;font-size:12px;cursor:pointer;color:#15703D;display:inline-flex;align-items:center;gap:4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+                Enviar
+              </button>
+            </form>
+            @endif
             <button onclick="copiarLink({{ $c->id }}, this)" title="Copiar link"
               style="padding:5px 10px;background:#F5F8F6;border:1px solid #DBE2DD;border-radius:6px;font-size:12px;cursor:pointer;color:#2A3D33;display:inline-flex;align-items:center;gap:4px;">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>

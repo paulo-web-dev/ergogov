@@ -14,7 +14,7 @@
       <tr>
         <td style="background:#0F3D2A;padding:28px 36px;text-align:center;">
           <div style="font-size:24px;font-weight:800;letter-spacing:-0.03em;color:#ffffff;">
-            ergo<span style="color:#5FB894;">.</span><span style="color:#8FCDB1;">gov</span>
+            Avalia<span style="color:#5FB894;">.</span><span style="color:#8FCDB1;">One</span>
           </div>
           @if($nomeEmpresa)
           <div style="font-size:13px;color:rgba(220,239,226,0.7);margin-top:4px;">{{ $nomeEmpresa }}</div>
@@ -71,7 +71,7 @@
             Atenciosamente, <strong style="color:#6B7B72;">Equipe de Desenvolvimento Humano</strong>
           </p>
           <p style="font-size:11px;color:#DBE2DD;margin:0;">
-            ergo.gov — Sistema de Gestão Ergonômica
+            Avalia.One — Sistema de Gestão Ergonômica
           </p>
           @if($convite->expira_em)
           <p style="font-size:11px;color:#BFC9C2;margin:8px 0 0;">

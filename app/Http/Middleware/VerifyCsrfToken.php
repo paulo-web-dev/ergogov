@@ -13,5 +13,7 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         '/api/asaas/cartao',
+        '/pesquisa/arp/*',
+        '/formulario/cad/respostas/arp',
     ];
 }

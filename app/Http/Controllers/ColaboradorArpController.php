@@ -44,17 +44,65 @@ class ColaboradorArpController extends Controller
         abort_unless($empresa->id_user == Auth::user()->id_instituicao, 403);
 
         $request->validate([
-            'nome'  => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'nome'            => 'required|string|max:255',
+            'email'           => 'required|email|max:255',
+            'cargo'           => 'nullable|string|max:255',
+            'descricao_cargo' => 'nullable|string',
+            'setor'           => 'nullable|string|max:255',
         ]);
 
         ColaboradorArp::firstOrCreate(
             ['id_empresa' => $idEmpresa, 'email' => strtolower($request->email)],
-            ['nome' => $request->nome, 'cargo' => $request->cargo, 'setor' => $request->setor, 'status' => 'ativo']
+            [
+                'nome'            => $request->nome,
+                'cargo'           => $request->cargo,
+                'descricao_cargo' => $request->descricao_cargo,
+                'setor'           => $request->setor,
+                'status'          => 'ativo',
+            ]
         );
 
         return redirect()->route('arp.colaboradores.index', $idEmpresa)
             ->with('success', 'Colaborador cadastrado com sucesso!');
+    }
+
+    /** ── NOVO: Formulário de edição ── */
+    public function edit(int $id)
+    {
+        $colaborador = ColaboradorArp::with('empresa')->findOrFail($id);
+        abort_unless($colaborador->empresa->id_user == Auth::user()->id_instituicao, 403);
+
+        $empresa = $colaborador->empresa;
+
+        return view('arp.colaboradores.edit', compact('colaborador', 'empresa'));
+    }
+
+    /** ── NOVO: Salvar edição ── */
+    public function update(Request $request, int $id)
+    {
+        $colaborador = ColaboradorArp::with('empresa')->findOrFail($id);
+        abort_unless($colaborador->empresa->id_user == Auth::user()->id_instituicao, 403);
+
+        $request->validate([
+            'nome'            => 'required|string|max:255',
+            'email'           => 'required|email|max:255',
+            'cargo'           => 'nullable|string|max:255',
+            'descricao_cargo' => 'nullable|string',
+            'setor'           => 'nullable|string|max:255',
+            'status'          => 'nullable|in:ativo,inativo',
+        ]);
+
+        $colaborador->update([
+            'nome'            => $request->nome,
+            'email'           => strtolower($request->email),
+            'cargo'           => $request->cargo,
+            'descricao_cargo' => $request->descricao_cargo,
+            'setor'           => $request->setor,
+            'status'          => $request->status ?? $colaborador->status,
+        ]);
+
+        return redirect()->route('arp.colaboradores.index', $colaborador->id_empresa)
+            ->with('success', 'Colaborador atualizado com sucesso!');
     }
 
     public function importarLote(Request $request, int $idEmpresa)
@@ -115,13 +163,11 @@ class ColaboradorArpController extends Controller
         return back()->with('success', "↺ $reenviados lembrete(s) enviado(s).");
     }
 
-    /** ── NOVO: Envio individual ── */
     public function enviarIndividual(int $idColaborador)
     {
         $c = ColaboradorArp::with('empresa')->findOrFail($idColaborador);
         abort_unless($c->empresa->id_user == Auth::user()->id_instituicao, 403);
 
-        // Busca convite existente ou cria um novo
         $convite = ConviteArp::where('id_colaborador', $c->id)
             ->whereIn('status', ['pendente', 'enviado'])
             ->first();

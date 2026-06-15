@@ -18,19 +18,22 @@ class ConviteArpService
             $linha = trim($linha);
             if (empty($linha)) continue;
 
+            // CSV: Nome,email,cargo,setor,descricao_cargo
             if (str_contains($linha, ',')) {
-                $partes = array_map('trim', explode(',', $linha));
-                $nome   = $partes[0] ?? null;
-                $email  = $partes[1] ?? null;
-                $cargo  = $partes[2] ?? null;
-                $setor  = $partes[3] ?? null;
+                $partes        = array_map('trim', explode(',', $linha));
+                $nome          = $partes[0] ?? null;
+                $email         = $partes[1] ?? null;
+                $cargo         = $partes[2] ?? null;
+                $setor         = $partes[3] ?? null;
+                $descricaoCargo = $partes[4] ?? null;
             } else {
                 preg_match('/([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/', $linha, $m);
                 if (empty($m[0])) { $erros[] = "Linha " . ($i+1) . ": e-mail não encontrado"; continue; }
-                $email = $m[0];
-                $nome  = trim(str_replace($email, '', $linha)) ?: null;
-                $cargo = null;
-                $setor = null;
+                $email          = $m[0];
+                $nome           = trim(str_replace($email, '', $linha)) ?: null;
+                $cargo          = null;
+                $setor          = null;
+                $descricaoCargo = null;
             }
 
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -40,7 +43,13 @@ class ConviteArpService
 
             ColaboradorArp::firstOrCreate(
                 ['id_empresa' => $idEmpresa, 'email' => strtolower($email)],
-                ['nome' => $nome ?? $email, 'cargo' => $cargo, 'setor' => $setor, 'status' => 'ativo']
+                [
+                    'nome'            => $nome ?? $email,
+                    'cargo'           => $cargo,
+                    'setor'           => $setor,
+                    'descricao_cargo' => $descricaoCargo,
+                    'status'          => 'ativo',
+                ]
             );
             $criados++;
         }
@@ -88,7 +97,6 @@ class ConviteArpService
 
     public function reenviarPendentes(int $idEmpresa): int
     {
-        // Reenvia para quem ainda NÃO respondeu (pendente ou enviado mas sem resposta)
         $pendentes = ConviteArp::where('id_empresa', $idEmpresa)
             ->whereIn('status', ['pendente', 'enviado'])
             ->where(fn($q) => $q->whereNull('expira_em')->orWhere('expira_em', '>', now()))
@@ -123,14 +131,11 @@ class ConviteArpService
         $enviados = ConviteArp::where('id_empresa', $idEmpresa)
             ->where('status', 'enviado')->count();
 
-        // Pendente = tem convite criado mas email ainda não foi enviado
         $nao_enviados = ConviteArp::where('id_empresa', $idEmpresa)
             ->where('status', 'pendente')->count();
 
-        // Sem resposta = recebeu o email mas ainda não respondeu
         $sem_resposta = $enviados;
 
-        // Total convidados = todos que têm convite
         $convidados = ConviteArp::where('id_empresa', $idEmpresa)->count();
 
         $taxa = $convidados > 0 ? round(($respondidos / $convidados) * 100) : 0;

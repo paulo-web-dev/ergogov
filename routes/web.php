@@ -121,6 +121,12 @@ Route::get('/empresa/{id}/arp/dashboard',  [ArpDashboardController::class, 'dash
 Route::get('/empresa/{id}/arp/dados-json', [ArpDashboardController::class, 'dadosJson'])->name('arp.dados-json');
 Route::get('/empresa/{id}/relatorio/arp', [RelatorioArpController::class, 'gerar'])->name('relatorio.arp');
 //Rotas Referentes a empresas ARP
+
+Route::get('/arp/colaboradores/{id}/editar',
+    [ColaboradorArpController::class, 'edit'])->name('arp.colaboradores.edit');
+
+Route::put('/arp/colaboradores/{id}',
+    [ColaboradorArpController::class, 'update'])->name('arp.colaboradores.update');
 Route::post('/arp/colaboradores/{id}/enviar',
     [ColaboradorArpController::class, 'enviarIndividual'])->name('arp.colaboradores.enviar');
 Route::middleware(['auth', 'power:11'])->group(function () {

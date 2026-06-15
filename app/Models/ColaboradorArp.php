@@ -11,7 +11,7 @@ class ColaboradorArp extends Model
     protected $table = 'colaboradores_arp';
 
     protected $fillable = [
-        'id_empresa', 'nome', 'email', 'cargo', 'setor', 'status',
+        'id_empresa', 'nome', 'email', 'cargo', 'descricao_cargo', 'setor', 'status',
     ];
 
     public function empresa()

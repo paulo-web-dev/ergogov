@@ -67,7 +67,6 @@
   <div style="height:8px;background:#ECF0EE;border-radius:4px;overflow:hidden;">
     <div style="height:100%;width:{{ $kpis['taxa'] }}%;background:linear-gradient(90deg,#2D8659,#5FB894);border-radius:4px;transition:width 0.8s ease;"></div>
   </div>
-  {{-- Mini breakdown --}}
   <div style="display:flex;gap:16px;margin-top:10px;font-size:11.5px;color:#6B7B72;">
     <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block;"></span> {{ $kpis['respondidos'] }} responderam</span>
     <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;display:inline-block;"></span> {{ $kpis['sem_resposta'] }} receberam mas não responderam</span>
@@ -145,7 +144,6 @@
   </div>
   @else
 
-  {{-- Filter tabs --}}
   <div style="display:flex;border-bottom:1px solid #ECF0EE;">
     <button onclick="filterStatus('todos')" data-filter="todos"
       style="padding:10px 16px;border:none;background:none;font-size:12.5px;font-weight:600;color:#1F6B43;cursor:pointer;border-bottom:2px solid #1F6B43;">
@@ -221,7 +219,15 @@
           {{ $convite?->respondido_em?->format('d/m/Y H:i') ?? '—' }}
         </td>
         <td style="padding:13px 18px;text-align:center;">
-          <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
+
+            {{-- Editar --}}
+            <a href="{{ route('arp.colaboradores.edit', $c->id) }}" title="Editar colaborador"
+              style="padding:5px 10px;background:#EFF6FF;border:1px solid #93C5FD;border-radius:6px;font-size:12px;color:#1D4ED8;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Editar
+            </a>
+
             {{-- Envio individual (apenas se não respondeu) --}}
             @if($statusConvite !== 'respondido')
             <form method="POST" action="{{ route('arp.colaboradores.enviar', $c->id) }}" style="display:inline;">
@@ -233,11 +239,15 @@
               </button>
             </form>
             @endif
+
+            {{-- Link --}}
             <button onclick="copiarLink({{ $c->id }}, this)" title="Copiar link"
               style="padding:5px 10px;background:#F5F8F6;border:1px solid #DBE2DD;border-radius:6px;font-size:12px;cursor:pointer;color:#2A3D33;display:inline-flex;align-items:center;gap:4px;">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               Link
             </button>
+
+            {{-- Ativar/Inativar --}}
             <form method="POST" action="{{ route('arp.colaboradores.status', $c->id) }}" style="display:inline;">
               @csrf @method('PATCH')
               <button type="submit"
@@ -245,6 +255,8 @@
                 {{ $c->status === 'ativo' ? 'Inativar' : 'Ativar' }}
               </button>
             </form>
+
+            {{-- Excluir --}}
             <form method="POST" action="{{ route('arp.colaboradores.destroy', $c->id) }}" style="display:inline;">
               @csrf @method('DELETE')
               <button type="submit" onclick="return confirm('Remover {{ addslashes($c->nome) }}?')"

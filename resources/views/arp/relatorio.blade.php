@@ -731,8 +731,8 @@ table.rel tr:hover td { background: var(--verde5); }
       <canvas id="barChart" height="220"></canvas>
     </div>
 
-    {{-- ── 7.2+ BLOCOS POR SETOR — apenas no global ── --}}
-    @if(!$setorAtual && !empty($dadosPorSetor))
+    {{-- ── 7.2+ BLOCOS POR SETOR — apenas no global ── COMENTADO SETORIZADO --}}
+    {{-- @if(!$setorAtual && !empty($dadosPorSetor))  
     @foreach($dadosPorSetor as $nomeSetor => $ds)
     @php
       $sIdx7   = array_search($nomeSetor, array_keys($dadosPorSetor)) + 2;
@@ -741,7 +741,7 @@ table.rel tr:hover td { background: var(--verde5); }
     @endphp
 
     <div style="margin-top:32px;page-break-inside:avoid;">
-      {{-- Cabeçalho de setor --}}
+    
       <div style="display:flex;align-items:center;gap:12px;background:var(--fundo);border:1px solid var(--linha);border-radius:10px 10px 0 0;padding:12px 18px;border-bottom:3px solid var(--cor-principal);">
         <span style="width:30px;height:30px;border-radius:50%;background:var(--cor-principal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;">{{ $sIdx7 }}</span>
         <div>
@@ -769,7 +769,7 @@ table.rel tr:hover td { background: var(--verde5); }
       </div>
     </div>
     @endforeach
-    @endif
+    @endif --}}
 
   </div>
 </div>
@@ -816,13 +816,12 @@ table.rel tr:hover td { background: var(--verde5); }
     @endif
 
     {{-- ── 8.2+ ANÁLISE POR SETOR — apenas no global ── --}}
-    @if(!$setorAtual && !empty($dadosPorSetor))
+    {{-- @if(!$setorAtual && !empty($dadosPorSetor))
     @foreach($dadosPorSetor as $nomeSetor => $ds)
     @php $sIdx8 = array_search($nomeSetor, array_keys($dadosPorSetor)) + 2; @endphp
 
     <div style="margin-top:36px;page-break-before:always;">
 
-      {{-- Cabeçalho de setor --}}
       <div style="display:flex;align-items:center;gap:12px;background:var(--fundo);border:1px solid var(--linha);border-radius:10px 10px 0 0;padding:12px 18px;border-bottom:3px solid var(--cor-principal);margin-bottom:0;">
         <span style="width:30px;height:30px;border-radius:50%;background:var(--cor-principal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;">{{ $sIdx8 }}</span>
         <div>
@@ -834,7 +833,6 @@ table.rel tr:hover td { background: var(--verde5); }
         </div>
       </div>
 
-      {{-- Categorias do setor --}}
       <div style="border:1px solid var(--linha);border-top:none;border-radius:0 0 10px 10px;padding:16px 18px;">
         @foreach($ds['categorias'] as $ci => $cat)
         @php $catClass = strtolower(str_replace([' ','/'],'-',$cat['nivel'])); @endphp
@@ -863,7 +861,7 @@ table.rel tr:hover td { background: var(--verde5); }
 
     </div>
     @endforeach
-    @endif
+    @endif --}}
 
   </div>
 </div>

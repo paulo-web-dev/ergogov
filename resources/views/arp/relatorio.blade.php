@@ -170,6 +170,32 @@ body  { font-family: var(--font); color: var(--ink); background: var(--branco); 
   margin: 18px 0 8px; border-left: 4px solid var(--verde4); padding-left: 10px;
 }
 
+/* ══════════════════════ BLOCO DE SETOR (relatório global) ══════════════════════ */
+.setor-bloco {
+  page-break-before: always;
+  margin-bottom: 40px;
+}
+.setor-bloco-header {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--fundo); border: 2px solid var(--cor-principal);
+  border-radius: 12px; padding: 16px 22px; margin-bottom: 20px;
+}
+.setor-bloco-icone {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--cor-principal); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.setor-bloco-nome {
+  font-size: 16pt; font-weight: 800; color: var(--cor-principal); line-height: 1.1;
+}
+.setor-bloco-meta {
+  font-size: 10.5px; color: var(--ink3); margin-top: 2px;
+}
+.setor-bloco-kpis {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px;
+}
+
 /* ══════════════════════ TABELAS ══════════════════════ */
 .tabela-wrap { overflow-x: auto; margin: 12px 0; }
 table.rel { width: 100%; border-collapse: collapse; font-size: 10pt; }
@@ -217,6 +243,9 @@ table.rel tr:hover td { background: var(--verde5); }
 .kpi-value { font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; line-height: 1; }
 .kpi-sub   { font-size: 10px; color: var(--ink3); margin-top: 4px; }
 
+/* KPI menor para blocos de setor */
+.kpi-card.sm .kpi-value { font-size: 20px; }
+
 /* ══════════════════════ CHART CONTAINER ══════════════════════ */
 .chart-box {
   border: 1px solid var(--linha); border-radius: 10px;
@@ -237,6 +266,18 @@ table.rel tr:hover td { background: var(--verde5); }
 }
 .reco-box strong { display: block; margin-bottom: 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--verde2); }
 
+/* ══════════════════════ DIVISOR DE SETOR ══════════════════════ */
+.setor-divider {
+  display: flex; align-items: center; gap: 16px;
+  margin: 32px 0 24px; page-break-before: always;
+}
+.setor-divider-line { flex: 1; height: 2px; background: var(--cor-principal); }
+.setor-divider-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--cor-principal);
+  white-space: nowrap; padding: 0 4px;
+}
+
 /* ══════════════════════ RODAPÉ DE PÁGINA ══════════════════════ */
 .page-footer {
   text-align: center; padding: 24px 0 0;
@@ -252,6 +293,7 @@ table.rel tr:hover td { background: var(--verde5); }
   .capa { min-height: 0; }
   .chart-box, .secao { page-break-inside: avoid; }
   .capa, .sumario { page-break-after: always; }
+  .setor-bloco { page-break-before: always; }
   @page { margin: 15mm 18mm 15mm 18mm; size: A4; }
 }
 
@@ -340,7 +382,14 @@ table.rel tr:hover td { background: var(--verde5); }
     @if($setorAtual)
     <div class="capa-setor-tag">Relatório do setor: {{ $setorAtual }}</div>
     @else
-    <div class="capa-setor-tag" style="background:var(--verde5);color:var(--verde);">Relatório Global — todos os setores</div>
+    <div class="capa-setor-tag" style="background:var(--verde5);color:var(--verde);">
+      Relatório Global — todos os setores
+      @if(!empty($setores))
+      <span style="font-size:10px;font-weight:400;opacity:0.8;display:block;margin-top:2px;">
+        Inclui análise individual de {{ count($setores) }} setor{{ count($setores) > 1 ? 'es' : '' }}
+      </span>
+      @endif
+    </div>
     @endif
 
     <div class="capa-meta">
@@ -352,6 +401,12 @@ table.rel tr:hover td { background: var(--verde5); }
         <strong>{{ count($dados['categorias']) }}</strong>
         Categorias avaliadas
       </div>
+      @if(!$setorAtual && !empty($setores))
+      <div class="capa-meta-item">
+        <strong>{{ count($setores) }}</strong>
+        Setores analisados
+      </div>
+      @endif
       <div class="capa-meta-item">
         <strong>{{ now()->format('m/Y') }}</strong>
         Data de geração
@@ -385,21 +440,32 @@ table.rel tr:hover td { background: var(--verde5); }
 <div class="sumario">
   <h2>Sumário</h2>
 
-  @foreach([
-    ['1', 'Introdução'],
-    ['2', 'Aspectos Legais e Normativos'],
-    ['3', 'Objetivos'],
-    ['4', 'Metodologia'],
-    ['5', 'Caracterização da Empresa'],
-    ['6', 'Resultados Gerais — Indicadores KPI'],
-    ['7', 'Polígono de Risco Psicossocial'],
-    ['8', 'Análise por Categoria'],
-    ['9', 'Análise por Setor'],
-    ['10', 'Cronograma de Ações e Plano de Controle'],
-    ['11', 'Considerações Finais'],
-    ['12', 'Responsáveis Técnicos'],
-  ] as $item)
-  <div class="sumario-item">
+  @php
+    $itensSumario = [
+      ['1',  'Introdução'],
+      ['2',  'Aspectos Legais e Normativos'],
+      ['3',  'Objetivos'],
+      ['4',  'Metodologia'],
+      ['5',  'Caracterização da Empresa'],
+      ['6',  'Resultados Gerais — Indicadores KPI'],
+      ['7',  'Polígono de Risco Psicossocial'],
+      ['8',  'Análise por Categoria'],
+      ['9',  'Análise por Setor'],
+    ];
+    // Se global com múltiplos setores, menciona cada setor no sumário
+    if (!$setorAtual && !empty($setores)) {
+      foreach ($setores as $s) {
+        $itensSumario[] = ['9.'. (array_search($s, $setores) + 1), 'Setor: '.$s];
+      }
+    }
+    $itensSumario[] = ['10', 'Cronograma de Ações e Plano de Controle'];
+    $itensSumario[] = ['11', 'Considerações Finais'];
+    $itensSumario[] = ['12', 'Responsáveis Técnicos'];
+  @endphp
+
+  @foreach($itensSumario as $item)
+  <div class="sumario-item {{ str_contains($item[0], '.') ? 'sumario-sub' : '' }}"
+       style="{{ str_contains($item[0], '.') ? 'padding-left:28px;' : '' }}">
     <span class="num">{{ $item[0] }}.</span>
     <span class="titulo">{{ $item[1] }}</span>
     <span class="dots"></span>
@@ -468,9 +534,6 @@ table.rel tr:hover td { background: var(--verde5); }
       <li style="margin-bottom:5px;">Cumprir os requisitos legais da NR-17 e ISO 45003:2021;</li>
       <li>Fornecer um plano de ação com prioridades de intervenção.</li>
     </ul>
-    {{-- @if($empresa->objetivos?->objetivo)
-    <p>{{ strip_tags($empresa->objetivos->objetivo) }}</p>
-    @endif --}}
   </div>
 </div>
 
@@ -480,7 +543,7 @@ table.rel tr:hover td { background: var(--verde5); }
 <div class="secao">
   <div class="secao-titulo"><span class="num">4</span> Metodologia</div>
   <div class="secao-corpo">
-    <p>A análise foi realizada por meio de questionário estruturado com <strong>{{ count($dados['categorias']) > 0 ? '70' : '70' }} perguntas</strong> distribuídas em <strong>17 categorias psicossociais</strong>, respondido por <strong>{{ $dados['participantes'] }} colaboradores</strong>. A escala de respostas é do tipo Likert (1 a 5):</p>
+    <p>A análise foi realizada por meio de questionário estruturado com <strong>70 perguntas</strong> distribuídas em <strong>17 categorias psicossociais</strong>, respondido por <strong>{{ $dados['participantes'] }} colaboradores</strong>. A escala de respostas é do tipo Likert (1 a 5):</p>
 
     <div class="tabela-wrap" style="margin:14px 0;">
       <table class="rel">
@@ -612,16 +675,16 @@ table.rel tr:hover td { background: var(--verde5); }
         @php
           $totalCats = count($dados['categorias']);
           $faixas = [
-            ['Extremo (PR1)','17–20','extremo'],
-            ['Elevado (PR2)','13–16','elevado'],
-            ['Moderado (PR3)','9–12','moderado'],
-            ['Baixo (PR4)','5–8','baixo'],
-            ['Insignificante (NA)','0–4','insignificante'],
+            ['Extremo (PR1)','17–20','extremo','Extremo'],
+            ['Elevado (PR2)','13–16','elevado','Elevado'],
+            ['Moderado (PR3)','9–12','moderado','Moderado'],
+            ['Baixo (PR4)','5–8','baixo','Baixo'],
+            ['Insignificante (NA)','0–4','insignificante','Insignificante'],
           ];
         @endphp
         @foreach($faixas as $f)
         @php
-          $count = $dados['distribuicao'][$f[0] === 'Extremo (PR1)' ? 'Extremo' : ($f[0] === 'Elevado (PR2)' ? 'Elevado' : ($f[0] === 'Moderado (PR3)' ? 'Moderado' : ($f[0] === 'Baixo (PR4)' ? 'Baixo' : 'Insignificante')))] ?? 0;
+          $count = $dados['distribuicao'][$f[3]] ?? 0;
           $pct = $totalCats > 0 ? round(($count / $totalCats) * 100) : 0;
         @endphp
         <tr>
@@ -644,12 +707,12 @@ table.rel tr:hover td { background: var(--verde5); }
 </div>
 
 {{-- ════════════════════════════════════════
-     7. GRÁFICO RADAR
+     7. GRÁFICO RADAR — GLOBAL
 ════════════════════════════════════════ --}}
 <div class="secao">
   <div class="secao-titulo"><span class="num">7</span> Polígono de Risco Psicossocial</div>
   <div class="secao-corpo">
-    <p>O gráfico abaixo representa o perfil de risco psicossocial da empresa, evidenciando as categorias com maior e menor índice de exposição.</p>
+    <p>O gráfico abaixo representa o perfil de risco psicossocial {{ $setorAtual ? 'do setor <strong>'.$setorAtual.'</strong>' : 'consolidado da empresa' }}, evidenciando as categorias com maior e menor índice de exposição.</p>
     <div class="chart-box">
       <h4>Radar de Risco — Distribuição por Categoria</h4>
       <p class="chart-sub">Escala 0–100% · Baseado na média ponderada dos respondentes</p>
@@ -666,24 +729,22 @@ table.rel tr:hover td { background: var(--verde5); }
 </div>
 
 {{-- ════════════════════════════════════════
-     8. ANÁLISE POR CATEGORIA
+     8. ANÁLISE POR CATEGORIA — GLOBAL
 ════════════════════════════════════════ --}}
 <div class="secao">
   <div class="secao-titulo"><span class="num">8</span> Análise por Categoria</div>
   <div class="secao-corpo">
-    <p>A tabela a seguir apresenta o diagnóstico detalhado de cada categoria psicossocial avaliada, com score, nível de risco e recomendação técnica.</p>
+    <p>A tabela a seguir apresenta o diagnóstico detalhado de cada categoria psicossocial avaliada {{ $setorAtual ? 'para o setor <strong>'.$setorAtual.'</strong>' : 'de forma consolidada para toda a organização' }}, com score, nível de risco e recomendação técnica.</p>
 
     @foreach($dados['categorias'] as $i => $cat)
     @php $catClass = strtolower(str_replace([' ','/'],'-',$cat['nivel'])); @endphp
     <div style="margin-bottom:18px;border:1px solid var(--linha);border-radius:10px;overflow:hidden;">
-      {{-- Header da categoria --}}
       <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--fundo);border-bottom:1px solid var(--linha);">
         <span style="width:26px;height:26px;border-radius:50%;background:var(--cor-principal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;">{{ $i+1 }}</span>
         <strong style="flex:1;font-size:11.5pt;">{{ $cat['nome'] }}</strong>
         <span class="rbadge {{ $catClass }}">● {{ $cat['nivel'] }} ({{ $cat['codigo'] }})</span>
         <span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--ink);">{{ $cat['score'] }}/20</span>
       </div>
-      {{-- Barra --}}
       <div style="padding:12px 16px;background:var(--branco);">
         <div class="barra-wrap" style="margin-bottom:10px;">
           <div class="barra-track" style="height:8px;">
@@ -691,7 +752,6 @@ table.rel tr:hover td { background: var(--verde5); }
           </div>
           <span class="barra-val">{{ $cat['score_pct'] }}%</span>
         </div>
-        {{-- Recomendação --}}
         <div class="reco-box">
           <strong>↗ Recomendação técnica</strong>
           {{ $cat['recomendacao'] }}
@@ -742,16 +802,158 @@ table.rel tr:hover td { background: var(--verde5); }
     @else
     <p style="color:var(--ink3);">Dados de setor não disponíveis para os respondentes.</p>
     @endif
+
+    {{-- ══════════════════════════════════════════════════════════
+         BLOCOS INDIVIDUAIS POR SETOR — apenas no relatório global
+    ══════════════════════════════════════════════════════════ --}}
+    @if(!$setorAtual && !empty($dadosPorSetor))
+
+    @foreach($dadosPorSetor as $nomeSetor => $ds)
+    @php
+      $dsNv      = $ds['nivel_geral'];
+      $dsNvClass = strtolower($dsNv['label']);
+      $dsMaior   = $ds['maior_risco'];
+      $dsIdx     = array_search($nomeSetor, array_keys($dadosPorSetor));
+      $radarId   = 'radarSetor_'.preg_replace('/[^a-z0-9]/i','_',$nomeSetor);
+      $barId     = 'barSetor_'.preg_replace('/[^a-z0-9]/i','_',$nomeSetor);
+    @endphp
+
+    {{-- Divisor visual de setor --}}
+    <div class="setor-bloco">
+
+      {{-- Header do setor --}}
+      <div class="setor-bloco-header">
+        <div class="setor-bloco-icone">🏢</div>
+        <div>
+          <div class="setor-bloco-nome">Setor: {{ $nomeSetor }}</div>
+          <div class="setor-bloco-meta">
+            {{ $ds['participantes'] }} respondente{{ $ds['participantes'] != 1 ? 's' : '' }} ·
+            {{ count($ds['categorias']) }} categorias avaliadas
+          </div>
+        </div>
+        <div style="margin-left:auto;">
+          <div style="text-align:right;font-size:10px;color:var(--ink3);margin-bottom:4px;">Score geral do setor</div>
+          <div style="font-size:22px;font-weight:800;color:{{ $dsNv['cor'] }};">
+            {{ number_format($ds['score_geral'],1) }}<span style="font-size:12px;font-weight:400;color:var(--ink3);">/20</span>
+          </div>
+          <span class="rbadge {{ $dsNvClass }}">● {{ $dsNv['label'] }} ({{ $dsNv['codigo'] }})</span>
+        </div>
+      </div>
+
+      {{-- KPIs do setor --}}
+      <div class="setor-bloco-kpis">
+        <div class="kpi-card sm">
+          <div class="kpi-label">Respondentes</div>
+          <div class="kpi-value">{{ $ds['participantes'] }}</div>
+          <div class="kpi-sub">neste setor</div>
+        </div>
+        <div class="kpi-card sm {{ $dsNvClass === 'extremo' || $dsNvClass === 'elevado' ? 'danger' : ($dsNvClass === 'moderado' ? 'warning' : 'success') }}">
+          <div class="kpi-label">Score Geral</div>
+          <div class="kpi-value">{{ number_format($ds['score_geral'],1) }}<span style="font-size:12px;color:var(--ink3);font-weight:400;">/20</span></div>
+          <div class="kpi-sub"><span class="rbadge {{ $dsNvClass }}">● {{ $dsNv['label'] }}</span></div>
+        </div>
+        <div class="kpi-card sm danger">
+          <div class="kpi-label">Categoria Crítica</div>
+          <div class="kpi-value" style="font-size:13px;line-height:1.3;margin-bottom:4px;">{{ $dsMaior['nome'] ?? '—' }}</div>
+          @if($dsMaior)
+          <div class="kpi-sub"><span class="rbadge {{ strtolower($dsMaior['nivel']) }}">● Score {{ $dsMaior['score'] }}</span></div>
+          @endif
+        </div>
+      </div>
+
+      {{-- Gráficos do setor --}}
+      <div class="chart-box">
+        <h4>Radar de Risco — {{ $nomeSetor }}</h4>
+        <p class="chart-sub">Escala 0–100% · Distribuição por categoria no setor</p>
+        <div style="max-width:440px;margin:0 auto;">
+          <canvas id="{{ $radarId }}" height="360"></canvas>
+        </div>
+      </div>
+      <div class="chart-box">
+        <h4>Scores por Categoria — {{ $nomeSetor }} (0–20)</h4>
+        <p class="chart-sub">Classificação conforme Matriz de Risco</p>
+        <canvas id="{{ $barId }}" height="200"></canvas>
+      </div>
+
+      {{-- Categorias do setor --}}
+      <div class="subsecao-titulo">Análise detalhada das categorias — {{ $nomeSetor }}</div>
+
+      @foreach($ds['categorias'] as $ci => $cat)
+      @php $catClass = strtolower(str_replace([' ','/'],'-',$cat['nivel'])); @endphp
+      <div style="margin-bottom:14px;border:1px solid var(--linha);border-radius:10px;overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--fundo);border-bottom:1px solid var(--linha);">
+          <span style="width:22px;height:22px;border-radius:50%;background:var(--cor-principal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">{{ $ci+1 }}</span>
+          <strong style="flex:1;font-size:11pt;">{{ $cat['nome'] }}</strong>
+          <span class="rbadge {{ $catClass }}">● {{ $cat['nivel'] }} ({{ $cat['codigo'] }})</span>
+          <span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--ink);">{{ $cat['score'] }}/20</span>
+        </div>
+        <div style="padding:10px 14px;background:var(--branco);">
+          <div class="barra-wrap" style="margin-bottom:8px;">
+            <div class="barra-track" style="height:7px;">
+              <div class="barra-fill" style="width:{{ $cat['score_pct'] }}%;background:{{ $cat['cor'] }};"></div>
+            </div>
+            <span class="barra-val">{{ $cat['score_pct'] }}%</span>
+          </div>
+          <div class="reco-box">
+            <strong>↗ Recomendação técnica</strong>
+            {{ $cat['recomendacao'] }}
+          </div>
+        </div>
+      </div>
+      @endforeach
+
+      {{-- Plano de ação do setor --}}
+      <div class="subsecao-titulo">Plano de Ação — {{ $nomeSetor }}</div>
+      <div class="tabela-wrap">
+        <table class="rel">
+          <tr>
+            <th>Prioridade</th>
+            <th>Categoria</th>
+            <th>Ação Recomendada</th>
+            <th style="width:80px;text-align:center;">Score</th>
+            <th style="width:90px;text-align:center;">Nível</th>
+          </tr>
+          @php
+            $prioridades = [
+              'Extremo'        => ['cor' => '#B91C1C', 'prazo' => '30 dias'],
+              'Elevado'        => ['cor' => '#C2410C', 'prazo' => '60 dias'],
+              'Moderado'       => ['cor' => '#B45309', 'prazo' => '90 dias'],
+              'Baixo'          => ['cor' => '#15803D', 'prazo' => '180 dias'],
+              'Insignificante' => ['cor' => '#4B5563', 'prazo' => 'Monitorar'],
+            ];
+            $catsOrdenadas = collect($ds['categorias'])->sortByDesc('score');
+          @endphp
+          @foreach($catsOrdenadas->take(10) as $cat)
+          @php
+            $pr = $prioridades[$cat['nivel']] ?? $prioridades['Insignificante'];
+            $catClass = strtolower(str_replace([' ','/'],'-',$cat['nivel']));
+          @endphp
+          <tr>
+            <td style="text-align:center;font-size:10px;font-weight:700;color:{{ $pr['cor'] }};">{{ $pr['prazo'] }}</td>
+            <td style="font-size:10pt;">{{ $cat['nome'] }}</td>
+            <td style="font-size:9.5pt;color:var(--ink2);">{{ Str::limit($cat['recomendacao'], 100) }}</td>
+            <td style="text-align:center;font-family:monospace;font-weight:700;">{{ $cat['score'] }}</td>
+            <td style="text-align:center;"><span class="rbadge {{ $catClass }}">{{ $cat['nivel'] }}</span></td>
+          </tr>
+          @endforeach
+        </table>
+      </div>
+
+    </div>{{-- .setor-bloco --}}
+    @endforeach
+
+    @endif{{-- fim !$setorAtual --}}
+
   </div>
 </div>
 
 {{-- ════════════════════════════════════════
-     10. PLANO DE AÇÃO
+     10. PLANO DE AÇÃO — GLOBAL
 ════════════════════════════════════════ --}}
 <div class="secao">
   <div class="secao-titulo"><span class="num">10</span> Cronograma de Ações e Plano de Controle</div>
   <div class="secao-corpo">
-    <p>Com base nos resultados, recomenda-se a implementação das ações abaixo, priorizadas pelo nível de risco:</p>
+    <p>Com base nos resultados {{ $setorAtual ? 'do setor <strong>'.$setorAtual.'</strong>' : 'consolidados de toda a organização' }}, recomenda-se a implementação das ações abaixo, priorizadas pelo nível de risco:</p>
     <div class="tabela-wrap">
       <table class="rel">
         <tr>
@@ -854,26 +1056,29 @@ table.rel tr:hover td { background: var(--verde5); }
 
 {{-- ════════════ CHARTS JS ════════════ --}}
 <script>
-const labels  = @json($dados['radar_labels']);
-const scores  = @json($dados['radar_scores']);
+// ── Dados globais ──────────────────────────────────────────────────────────
+const labels       = @json($dados['radar_labels']);
+const scores       = @json($dados['radar_scores']);
 const scoresBrutos = @json(array_column($dados['categorias'], 'score'));
-const cores   = @json($dados['radar_cores']);
+const cores        = @json($dados['radar_cores']);
+const corPrincipal = '{{ $identidade->cor_principal ?? "#0F3D2A" }}';
 
-// ── Radar ──────────────────────────────────────────────────────────────────
-if (labels.length > 0) {
-  const ctxR = document.getElementById('radarChart').getContext('2d');
-  new Chart(ctxR, {
+// helper para criar radar
+function makeRadar(id, lbs, sc, cs) {
+  const ctx = document.getElementById(id);
+  if (!ctx || !lbs.length) return;
+  new Chart(ctx.getContext('2d'), {
     type: 'radar',
     data: {
-      labels,
+      labels: lbs,
       datasets: [{
         label: 'Risco (%)',
-        data: scores,
+        data: sc,
         fill: true,
         backgroundColor: 'rgba(31,107,67,0.10)',
-        borderColor: '{{ $identidade->cor_principal ?? "#0F3D2A" }}',
+        borderColor: corPrincipal,
         borderWidth: 2,
-        pointBackgroundColor: cores,
+        pointBackgroundColor: cs,
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
         pointRadius: 5,
@@ -898,18 +1103,19 @@ if (labels.length > 0) {
   });
 }
 
-// ── Bar ────────────────────────────────────────────────────────────────────
-if (labels.length > 0) {
-  const ctxB = document.getElementById('barChart').getContext('2d');
-  new Chart(ctxB, {
+// helper para criar bar horizontal
+function makeBar(id, lbs, sc, cs) {
+  const ctx = document.getElementById(id);
+  if (!ctx || !lbs.length) return;
+  new Chart(ctx.getContext('2d'), {
     type: 'bar',
     data: {
-      labels,
+      labels: lbs,
       datasets: [{
         label: 'Score',
-        data: scoresBrutos,
-        backgroundColor: cores.map(c => c + '33'),
-        borderColor: cores,
+        data: sc,
+        backgroundColor: cs.map(c => c + '33'),
+        borderColor: cs,
         borderWidth: 2,
         borderRadius: 5,
         borderSkipped: false,
@@ -937,6 +1143,32 @@ if (labels.length > 0) {
     }
   });
 }
+
+// ── Gráficos globais ───────────────────────────────────────────────────────
+makeRadar('radarChart', labels, scores, cores);
+makeBar('barChart', labels, scoresBrutos, cores);
+
+// ── Gráficos por setor (apenas no global) ──────────────────────────────────
+@if(!$setorAtual && !empty($dadosPorSetor))
+@foreach($dadosPorSetor as $nomeSetor => $ds)
+@php
+  $radarId = 'radarSetor_'.preg_replace('/[^a-z0-9]/i','_',$nomeSetor);
+  $barId   = 'barSetor_'.preg_replace('/[^a-z0-9]/i','_',$nomeSetor);
+@endphp
+makeRadar(
+  '{{ $radarId }}',
+  @json($ds['radar_labels']),
+  @json($ds['radar_scores']),
+  @json($ds['radar_cores'])
+);
+makeBar(
+  '{{ $barId }}',
+  @json($ds['radar_labels']),
+  @json(array_column($ds['categorias'], 'score')),
+  @json($ds['radar_cores'])
+);
+@endforeach
+@endif
 </script>
 </body>
 </html>

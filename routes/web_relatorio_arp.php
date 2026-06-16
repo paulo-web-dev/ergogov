@@ -1,5 +1,7 @@
 <?php
-// Adicione ao seu routes/web.php (dentro do grupo auth):
+// Sua rota relatorio.arp continua a mesma — só confirme que está assim
+// (o controller agora recebe Request automaticamente):
+
 use App\Http\Controllers\RelatorioArpController;
 
 Route::get('/empresa/{id}/relatorio/arp', [RelatorioArpController::class, 'gerar'])

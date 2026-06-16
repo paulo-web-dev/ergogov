@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\Empresas;
 use App\Models\IdentidadeVisual;
 use App\Models\ResultadoRespostaArp;
@@ -15,7 +16,7 @@ class RelatorioArpController extends Controller
         $this->middleware('auth');
     }
 
-    public function gerar(int $id)
+    public function gerar(Request $request, int $id)
     {
         $empresa = Empresas::where('id', $id)
             ->with([
@@ -26,26 +27,37 @@ class RelatorioArpController extends Controller
 
         abort_unless($empresa->id_user == Auth::user()->id_instituicao, 403);
 
-        // Identidade visual
         $identidade = IdentidadeVisual::where('id_user', $empresa->id)->first();
         if (!$identidade) {
             $identidade = new IdentidadeVisual();
-            $identidade->cor_principal  = '#0F3D2A';
-            $identidade->foto_empresa   = null;
+            $identidade->cor_principal = '#0F3D2A';
+            $identidade->foto_empresa  = null;
         }
 
-        // Dados ARP com pesos não-lineares
-        $dados = $this->arpService->processar($id);
+        // Setor selecionado (null = relatório global)
+        $setorAtual = $request->query('setor');
+        $setores    = $this->arpService->setoresDisponiveis($id);
 
-        // Respondentes por setor (para tabela detalhada)
-        $respondentes = ResultadoRespostaArp::where('id_empresa', $id)
+        // Dados filtrados por setor (ou globais)
+        $dados = $this->arpService->processar($id, $setorAtual);
+
+        // Respondentes por setor — filtra se um setor estiver selecionado
+        $resultados = ResultadoRespostaArp::where('id_empresa', $id)
             ->with('funcionario')
-            ->get()
+            ->get();
+
+        if ($setorAtual) {
+            $resultados = $resultados->filter(
+                fn($r) => ($r->funcionario->setor ?? 'Não informado') === $setorAtual
+            );
+        }
+
+        $respondentes = $resultados
             ->groupBy(fn($r) => $r->funcionario->setor ?? 'Não informado')
             ->map(fn($g) => $g->pluck('id_func')->unique()->count());
 
         return view('arp.relatorio', compact(
-            'empresa', 'identidade', 'dados', 'respondentes'
+            'empresa', 'identidade', 'dados', 'respondentes', 'setores', 'setorAtual'
         ));
     }
 }

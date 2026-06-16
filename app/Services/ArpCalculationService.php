@@ -3,22 +3,10 @@
 namespace App\Services;
 
 use App\Models\ResultadoRespostaArp;
-use App\Models\QuestionarioPerguntaArp;
-use Illuminate\Support\Collection;
+use App\Models\FuncionarioQuestionarioArp;
 
 class ArpCalculationService
 {
-    /**
-     * Pesos não-lineares por resposta Likert (1 a 5).
-     * Respostas frequentes pesam muito mais para distorcer o radar
-     * na direção do risco real.
-     *
-     * 1 = Nunca/quase nunca → 0.0  (sem contribuição)
-     * 2 = Raramente         → 0.5
-     * 3 = Às vezes          → 1.5
-     * 4 = Frequente         → 2.5
-     * 5 = Muito frequente   → 4.0
-     */
     private const PESOS = [
         1 => 0.0,
         2 => 0.5,
@@ -27,17 +15,6 @@ class ArpCalculationService
         5 => 4.0,
     ];
 
-    /**
-     * Classificação de risco baseada na planilha original (MATRIZ):
-     * Extremo:       17–20
-     * Elevado:       13–16
-     * Moderado:       9–12
-     * Baixo:          5–8
-     * Insignificante: 0–4
-     *
-     * Aqui normalizamos para escala 0–20 por categoria
-     * (max_peso=4.0 × num_perguntas, reescalado para 20).
-     */
     private const NIVEIS = [
         ['min' => 17, 'max' => 20, 'label' => 'Extremo',        'codigo' => 'PR1', 'cor' => '#FF2D55'],
         ['min' => 13, 'max' => 16, 'label' => 'Elevado',        'codigo' => 'PR2', 'cor' => '#FF6B00'],
@@ -46,9 +23,6 @@ class ArpCalculationService
         ['min' =>  0, 'max' =>  4, 'label' => 'Insignificante', 'codigo' => 'NA',  'cor' => '#636366'],
     ];
 
-    /**
-     * Recomendações por categoria (extraídas da planilha MATRIZ).
-     */
     private const RECOMENDACOES = [
         'Funções e expectativas'                        => 'Definir funções de trabalho, relações de supervisão e requisitos de desempenho para minimizar confusões e equívocos. Facilitar o desenvolvimento de competências e atribuir tarefas a trabalhadores com conhecimentos e aptidões adequados.',
         'Controle de trabalho ou autonomia'             => 'Aumentar o controle dos trabalhadores sobre como atuam, introduzindo trabalho flexível, compartilhamento de trabalho e mais consulta sobre práticas de trabalho.',
@@ -70,66 +44,68 @@ class ArpCalculationService
     ];
 
     /**
-     * Ponto de entrada principal: processa todos os resultados de uma empresa.
+     * Processa resultados de uma empresa.
+     * Se $setor for informado, filtra apenas os respondentes daquele setor.
      */
-    public function processar(int $idEmpresa): array
+    public function processar(int $idEmpresa, ?string $setor = null): array
     {
         $resultados = ResultadoRespostaArp::where('id_empresa', $idEmpresa)
             ->with(['pergunta.categoria.categoria', 'resposta', 'funcionario'])
             ->get();
 
+        // ── Filtro por setor ──────────────────────────────────────────────
+        if ($setor !== null && $setor !== '') {
+            $resultados = $resultados->filter(function ($r) use ($setor) {
+                $s = $r->funcionario->setor ?? 'Não informado';
+                return $s === $setor;
+            });
+        }
+
         if ($resultados->isEmpty()) {
             return $this->emptyResult();
         }
 
-        // Agrupa por respondente para calcular participantes únicos
         $participantes = $resultados->pluck('id_func')->unique()->count();
 
-        // Agrupa por categoria
         $porCategoria = [];
         foreach ($resultados as $r) {
             if (!$r->resposta) continue;
 
-            $categoria  = $r->pergunta->categoria->categoria->nome
+            $categoria = $r->pergunta->categoria->categoria->nome
                        ?? $r->pergunta->categoria->nome
                        ?? 'Sem categoria';
 
-            // Extrai valor numérico da resposta (1–5)
             preg_match('/^\d+/', $r->resposta->resposta ?? '', $m);
             $valor = isset($m[0]) ? (int)$m[0] : null;
-
             if ($valor === null || $valor < 1 || $valor > 5) continue;
 
             $porCategoria[$categoria][] = $valor;
         }
 
-        // Calcula score por categoria
         $categorias = [];
         foreach ($porCategoria as $nome => $valores) {
-            $score     = $this->calcularScore($valores);
-            $nivel     = $this->classificar($score);
+            $score = $this->calcularScore($valores);
+            $nivel = $this->classificar($score);
             $categorias[] = [
-                'nome'          => $nome,
-                'score'         => round($score, 2),
-                'score_pct'     => round(($score / 20) * 100, 1),
-                'nivel'         => $nivel['label'],
-                'codigo'        => $nivel['codigo'],
-                'cor'           => $nivel['cor'],
-                'respondentes'  => count($valores),
-                'recomendacao'  => self::RECOMENDACOES[$nome] ?? 'Monitorar e revisar periodicamente.',
+                'nome'         => $nome,
+                'score'        => round($score, 2),
+                'score_pct'    => round(($score / 20) * 100, 1),
+                'nivel'        => $nivel['label'],
+                'codigo'       => $nivel['codigo'],
+                'cor'          => $nivel['cor'],
+                'respondentes' => count($valores),
+                'recomendacao' => self::RECOMENDACOES[$nome] ?? 'Monitorar e revisar periodicamente.',
             ];
         }
 
-        // Ordena por score desc
         usort($categorias, fn($a, $b) => $b['score'] <=> $a['score']);
 
-        $maiorRisco    = $categorias[0] ?? null;
-        $scoreGeral    = count($categorias) > 0
+        $maiorRisco = $categorias[0] ?? null;
+        $scoreGeral = count($categorias) > 0
             ? round(array_sum(array_column($categorias, 'score')) / count($categorias), 2)
             : 0;
-        $nivelGeral    = $this->classificar($scoreGeral);
+        $nivelGeral = $this->classificar($scoreGeral);
 
-        // Distribuição por faixa de risco (contagem de categorias)
         $distribuicao = ['Extremo' => 0, 'Elevado' => 0, 'Moderado' => 0, 'Baixo' => 0, 'Insignificante' => 0];
         foreach ($categorias as $c) {
             $distribuicao[$c['nivel']] = ($distribuicao[$c['nivel']] ?? 0) + 1;
@@ -149,28 +125,30 @@ class ArpCalculationService
     }
 
     /**
-     * Calcula score ponderado de uma lista de respostas Likert.
-     * Resultado normalizado para escala 0–20.
+     * Lista os setores que possuem respondentes ARP nesta empresa.
      */
+    public function setoresDisponiveis(int $idEmpresa): array
+    {
+        return FuncionarioQuestionarioArp::where('id_empresa', $idEmpresa)
+            ->whereNotNull('setor')
+            ->where('setor', '!=', '')
+            ->distinct()
+            ->orderBy('setor')
+            ->pluck('setor')
+            ->toArray();
+    }
+
     private function calcularScore(array $valores): float
     {
         if (empty($valores)) return 0;
-
         $soma = 0;
         foreach ($valores as $v) {
             $soma += self::PESOS[$v] ?? 0;
         }
-
-        // Média ponderada
         $media = $soma / count($valores);
-
-        // Normaliza para 0–20 (peso máximo = 4.0 → score 20)
         return ($media / 4.0) * 20;
     }
 
-    /**
-     * Classifica score numérico (0–20) em nível de risco.
-     */
     public function classificar(float $score): array
     {
         foreach (self::NIVEIS as $nivel) {
@@ -178,7 +156,7 @@ class ArpCalculationService
                 return $nivel;
             }
         }
-        return self::NIVEIS[4]; // Insignificante como fallback
+        return self::NIVEIS[4];
     }
 
     private function emptyResult(): array

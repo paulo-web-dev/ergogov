@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relatório ARP — {{ $empresa->nome }}</title>
+<title>Relatório ARP{{ $setorAtual ? ' — '.$setorAtual : '' }} — {{ $empresa->nome }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -51,6 +51,7 @@ body  { font-family: var(--font); color: var(--ink); background: var(--branco); 
 
 /* ── Page wrapper ── */
 .relatorio { max-width: 800px; margin: 70px auto 48px; padding: 0 24px; }
+.has-setor-bar .relatorio { margin-top: 108px; }
 
 /* ══════════════════════ CAPA ══════════════════════ */
 .capa {
@@ -253,6 +254,35 @@ table.rel tr:hover td { background: var(--verde5); }
   .capa, .sumario { page-break-after: always; }
   @page { margin: 15mm 18mm 15mm 18mm; size: A4; }
 }
+
+/* ══════════════════════ SELETOR DE SETOR (não imprime) ══════════════════════ */
+.setor-selector {
+  position: fixed; top: 41px; left: 0; right: 0; z-index: 998;
+  background: #fff; border-bottom: 1px solid var(--linha);
+  padding: 10px 24px; display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+.setor-selector .setor-label {
+  font-size: 12px; font-weight: 700; color: var(--ink3);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-right: 4px;
+}
+.setor-btn {
+  font-size: 12.5px; font-weight: 600; text-decoration: none;
+  padding: 5px 14px; border-radius: 20px;
+  border: 1px solid var(--linha); color: var(--ink2); background: #fff;
+  transition: all 0.15s;
+}
+.setor-btn:hover { border-color: var(--verde3); color: var(--verde2); }
+.setor-btn.active { background: var(--cor-principal); border-color: var(--cor-principal); color: #fff; }
+.capa-setor-tag {
+  display: inline-block; margin-top: 14px;
+  background: var(--cor-principal); color: #fff;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
+  padding: 8px 22px; border-radius: 24px;
+}
+@media print {
+  .setor-selector { display: none !important; }
+}
 </style>
 </head>
 <body>
@@ -260,13 +290,26 @@ table.rel tr:hover td { background: var(--verde5); }
 {{-- ── Print bar ── --}}
 <div class="print-bar">
   <span>
-    <strong>Avalia.One</strong> · Relatório ARP — {{ $empresa->nome }}
+    <strong>Avalia.One</strong> · Relatório ARP{{ $setorAtual ? ' — Setor '.$setorAtual : ' — Global' }} — {{ $empresa->nome }}
   </span>
   <div style="display:flex;gap:8px;">
     <button onclick="window.print()">⬇ Imprimir / Salvar PDF</button>
     <button onclick="window.history.back()" style="background:transparent;border-color:rgba(255,255,255,0.2);">← Voltar</button>
   </div>
 </div>
+
+{{-- ── Seletor de setor (não imprime) ── --}}
+@if(!empty($setores))
+<div class="setor-selector">
+  <span class="setor-label">Relatório de:</span>
+  <a href="{{ route('relatorio.arp', $empresa->id) }}"
+     class="setor-btn {{ !$setorAtual ? 'active' : '' }}">Global (todos os setores)</a>
+  @foreach($setores as $s)
+  <a href="{{ route('relatorio.arp', ['id' => $empresa->id, 'setor' => $s]) }}"
+     class="setor-btn {{ $setorAtual === $s ? 'active' : '' }}">{{ $s }}</a>
+  @endforeach
+</div>
+@endif
 
 <div class="relatorio">
 
@@ -293,6 +336,12 @@ table.rel tr:hover td { background: var(--verde5); }
       <div class="capa-empresa-cnpj">CNPJ: {{ $empresa->cnpj }}</div>
       @endif
     </div>
+
+    @if($setorAtual)
+    <div class="capa-setor-tag">Relatório do setor: {{ $setorAtual }}</div>
+    @else
+    <div class="capa-setor-tag" style="background:var(--verde5);color:var(--verde);">Relatório Global — todos os setores</div>
+    @endif
 
     <div class="capa-meta">
       <div class="capa-meta-item">

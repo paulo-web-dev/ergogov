@@ -1013,7 +1013,7 @@ table.rel tr:hover td { background: var(--verde5); }
             <th>Categoria</th>
             <th>Ação Recomendada</th>
             <th style="width:80px;text-align:center;">Score</th>
-            <th style="width:90px;text-align:center;">Nível</th>
+            <th style="width:90px;text-align:center;">Risco</th>
           </tr>
           @php
             $prioridades = [
@@ -1063,7 +1063,7 @@ table.rel tr:hover td { background: var(--verde5); }
           <th>Categoria</th>
           <th>Ação Recomendada</th>
           <th style="width:100px;text-align:center;">Score</th>
-          <th style="width:100px;text-align:center;">Nível</th>
+          <th style="width:100px;text-align:center;">Risco</th>
         </tr>
         @php
           $prioridades = [

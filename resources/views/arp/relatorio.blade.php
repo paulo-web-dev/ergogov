@@ -707,34 +707,85 @@ table.rel tr:hover td { background: var(--verde5); }
 </div>
 
 {{-- ════════════════════════════════════════
-     7. GRÁFICO RADAR — GLOBAL
+     7. GRÁFICO RADAR
 ════════════════════════════════════════ --}}
 <div class="secao">
   <div class="secao-titulo"><span class="num">7</span> Polígono de Risco Psicossocial</div>
   <div class="secao-corpo">
-    <p>O gráfico abaixo representa o perfil de risco psicossocial {{ $setorAtual ? 'do setor <strong>'.$setorAtual.'</strong>' : 'consolidado da empresa' }}, evidenciando as categorias com maior e menor índice de exposição.</p>
+
+    {{-- ── 7.1 CONSOLIDADO GLOBAL / setor único ── --}}
+    @if(!$setorAtual && !empty($dadosPorSetor))
+    <div class="subsecao-titulo" style="margin-top:0;">7.1 — Consolidado Global (todos os setores)</div>
+    @endif
+    <p>O gráfico abaixo representa o perfil de risco psicossocial {{ $setorAtual ? 'do setor <strong>'.$setorAtual.'</strong>' : 'consolidado de toda a organização' }}, evidenciando as categorias com maior e menor índice de exposição.</p>
     <div class="chart-box">
-      <h4>Radar de Risco — Distribuição por Categoria</h4>
+      <h4>Radar de Risco — Distribuição por Categoria {{ $setorAtual ? '('.$setorAtual.')' : '(Global)' }}</h4>
       <p class="chart-sub">Escala 0–100% · Baseado na média ponderada dos respondentes</p>
       <div style="max-width:500px;margin:0 auto;">
         <canvas id="radarChart" height="400"></canvas>
       </div>
     </div>
     <div class="chart-box">
-      <h4>Scores por Categoria (0–20)</h4>
+      <h4>Scores por Categoria (0–20) {{ $setorAtual ? '('.$setorAtual.')' : '(Global)' }}</h4>
       <p class="chart-sub">Classificação conforme Matriz de Risco</p>
       <canvas id="barChart" height="220"></canvas>
     </div>
+
+    {{-- ── 7.2+ BLOCOS POR SETOR — apenas no global ── --}}
+    @if(!$setorAtual && !empty($dadosPorSetor))
+    @foreach($dadosPorSetor as $nomeSetor => $ds)
+    @php
+      $sIdx7   = array_search($nomeSetor, array_keys($dadosPorSetor)) + 2;
+      $rId7    = 'radar7Setor_'.preg_replace('/[^a-z0-9]/i','_',$nomeSetor);
+      $bId7    = 'bar7Setor_'.preg_replace('/[^a-z0-9]/i','_',$nomeSetor);
+    @endphp
+
+    <div style="margin-top:32px;page-break-inside:avoid;">
+      {{-- Cabeçalho de setor --}}
+      <div style="display:flex;align-items:center;gap:12px;background:var(--fundo);border:1px solid var(--linha);border-radius:10px 10px 0 0;padding:12px 18px;border-bottom:3px solid var(--cor-principal);">
+        <span style="width:30px;height:30px;border-radius:50%;background:var(--cor-principal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;">{{ $sIdx7 }}</span>
+        <div>
+          <div style="font-size:12pt;font-weight:700;color:var(--cor-principal);">7.{{ $sIdx7 - 1 }} — Setor: {{ $nomeSetor }}</div>
+          <div style="font-size:10px;color:var(--ink3);">{{ $ds['participantes'] }} respondente{{ $ds['participantes'] != 1 ? 's' : '' }} · Score geral:
+            <strong style="color:{{ $ds['nivel_geral']['cor'] }};">{{ number_format($ds['score_geral'],1) }}/20</strong>
+            <span class="rbadge {{ strtolower($ds['nivel_geral']['label']) }}" style="margin-left:6px;">● {{ $ds['nivel_geral']['label'] }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="border:1px solid var(--linha);border-top:none;border-radius:0 0 10px 10px;padding:16px 18px;">
+        <div class="chart-box" style="margin-top:0;">
+          <h4>Radar de Risco — {{ $nomeSetor }}</h4>
+          <p class="chart-sub">Escala 0–100% · Distribuição por categoria no setor</p>
+          <div style="max-width:460px;margin:0 auto;">
+            <canvas id="{{ $rId7 }}" height="380"></canvas>
+          </div>
+        </div>
+        <div class="chart-box">
+          <h4>Scores por Categoria — {{ $nomeSetor }} (0–20)</h4>
+          <p class="chart-sub">Classificação conforme Matriz de Risco</p>
+          <canvas id="{{ $bId7 }}" height="210"></canvas>
+        </div>
+      </div>
+    </div>
+    @endforeach
+    @endif
+
   </div>
 </div>
 
 {{-- ════════════════════════════════════════
-     8. ANÁLISE POR CATEGORIA — GLOBAL
+     8. ANÁLISE POR CATEGORIA
 ════════════════════════════════════════ --}}
 <div class="secao">
   <div class="secao-titulo"><span class="num">8</span> Análise por Categoria</div>
   <div class="secao-corpo">
-    <p>A tabela a seguir apresenta o diagnóstico detalhado de cada categoria psicossocial avaliada {{ $setorAtual ? 'para o setor <strong>'.$setorAtual.'</strong>' : 'de forma consolidada para toda a organização' }}, com score, nível de risco e recomendação técnica.</p>
+
+    {{-- ── 8.1 CONSOLIDADO GLOBAL / setor único ── --}}
+    @if(!$setorAtual && !empty($dadosPorSetor))
+    <div class="subsecao-titulo" style="margin-top:0;">8.1 — Consolidado Global (todos os setores)</div>
+    @endif
+    <p>Diagnóstico detalhado de cada categoria psicossocial {{ $setorAtual ? 'para o setor <strong>'.$setorAtual.'</strong>' : 'de forma consolidada para toda a organização' }}, com score, nível de risco e recomendação técnica.</p>
 
     @foreach($dados['categorias'] as $i => $cat)
     @php $catClass = strtolower(str_replace([' ','/'],'-',$cat['nivel'])); @endphp
@@ -763,6 +814,57 @@ table.rel tr:hover td { background: var(--verde5); }
     @if(empty($dados['categorias']))
     <p style="color:var(--ink3);text-align:center;padding:24px;">Nenhum dado disponível. Aguardando respondentes.</p>
     @endif
+
+    {{-- ── 8.2+ ANÁLISE POR SETOR — apenas no global ── --}}
+    @if(!$setorAtual && !empty($dadosPorSetor))
+    @foreach($dadosPorSetor as $nomeSetor => $ds)
+    @php $sIdx8 = array_search($nomeSetor, array_keys($dadosPorSetor)) + 2; @endphp
+
+    <div style="margin-top:36px;page-break-before:always;">
+
+      {{-- Cabeçalho de setor --}}
+      <div style="display:flex;align-items:center;gap:12px;background:var(--fundo);border:1px solid var(--linha);border-radius:10px 10px 0 0;padding:12px 18px;border-bottom:3px solid var(--cor-principal);margin-bottom:0;">
+        <span style="width:30px;height:30px;border-radius:50%;background:var(--cor-principal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;">{{ $sIdx8 }}</span>
+        <div>
+          <div style="font-size:12pt;font-weight:700;color:var(--cor-principal);">8.{{ $sIdx8 - 1 }} — Setor: {{ $nomeSetor }}</div>
+          <div style="font-size:10px;color:var(--ink3);">{{ $ds['participantes'] }} respondente{{ $ds['participantes'] != 1 ? 's' : '' }} · Score geral:
+            <strong style="color:{{ $ds['nivel_geral']['cor'] }};">{{ number_format($ds['score_geral'],1) }}/20</strong>
+            <span class="rbadge {{ strtolower($ds['nivel_geral']['label']) }}" style="margin-left:6px;">● {{ $ds['nivel_geral']['label'] }}</span>
+          </div>
+        </div>
+      </div>
+
+      {{-- Categorias do setor --}}
+      <div style="border:1px solid var(--linha);border-top:none;border-radius:0 0 10px 10px;padding:16px 18px;">
+        @foreach($ds['categorias'] as $ci => $cat)
+        @php $catClass = strtolower(str_replace([' ','/'],'-',$cat['nivel'])); @endphp
+        <div style="margin-bottom:14px;border:1px solid var(--linha);border-radius:10px;overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--fundo);border-bottom:1px solid var(--linha);">
+            <span style="width:22px;height:22px;border-radius:50%;background:var(--cor-principal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">{{ $ci+1 }}</span>
+            <strong style="flex:1;font-size:11pt;">{{ $cat['nome'] }}</strong>
+            <span class="rbadge {{ $catClass }}">● {{ $cat['nivel'] }} ({{ $cat['codigo'] }})</span>
+            <span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--ink);">{{ $cat['score'] }}/20</span>
+          </div>
+          <div style="padding:10px 14px;background:var(--branco);">
+            <div class="barra-wrap" style="margin-bottom:8px;">
+              <div class="barra-track" style="height:7px;">
+                <div class="barra-fill" style="width:{{ $cat['score_pct'] }}%;background:{{ $cat['cor'] }};"></div>
+              </div>
+              <span class="barra-val">{{ $cat['score_pct'] }}%</span>
+            </div>
+            <div class="reco-box">
+              <strong>↗ Recomendação técnica</strong>
+              {{ $cat['recomendacao'] }}
+            </div>
+          </div>
+        </div>
+        @endforeach
+      </div>
+
+    </div>
+    @endforeach
+    @endif
+
   </div>
 </div>
 
@@ -1148,25 +1250,24 @@ function makeBar(id, lbs, sc, cs) {
 makeRadar('radarChart', labels, scores, cores);
 makeBar('barChart', labels, scoresBrutos, cores);
 
-// ── Gráficos por setor (apenas no global) ──────────────────────────────────
+// ── Gráficos por setor — seção 7 e seção 9 (apenas no global) ────────────
 @if(!$setorAtual && !empty($dadosPorSetor))
 @foreach($dadosPorSetor as $nomeSetor => $ds)
 @php
-  $radarId = 'radarSetor_'.preg_replace('/[^a-z0-9]/i','_',$nomeSetor);
-  $barId   = 'barSetor_'.preg_replace('/[^a-z0-9]/i','_',$nomeSetor);
+  $slug    = preg_replace('/[^a-z0-9]/i','_',$nomeSetor);
+  // Seção 7: Polígono de Risco por setor
+  $rId7    = 'radar7Setor_'.$slug;
+  $bId7    = 'bar7Setor_'.$slug;
+  // Seção 9: blocos completos por setor (radar + bar já renderizados lá)
+  $radarId = 'radarSetor_'.$slug;
+  $barId   = 'barSetor_'.$slug;
 @endphp
-makeRadar(
-  '{{ $radarId }}',
-  @json($ds['radar_labels']),
-  @json($ds['radar_scores']),
-  @json($ds['radar_cores'])
-);
-makeBar(
-  '{{ $barId }}',
-  @json($ds['radar_labels']),
-  @json(array_column($ds['categorias'], 'score')),
-  @json($ds['radar_cores'])
-);
+{{-- Seção 7 --}}
+makeRadar('{{ $rId7 }}', @json($ds['radar_labels']), @json($ds['radar_scores']), @json($ds['radar_cores']));
+makeBar('{{ $bId7 }}', @json($ds['radar_labels']), @json(array_column($ds['categorias'], 'score')), @json($ds['radar_cores']));
+{{-- Seção 9 --}}
+makeRadar('{{ $radarId }}', @json($ds['radar_labels']), @json($ds['radar_scores']), @json($ds['radar_cores']));
+makeBar('{{ $barId }}', @json($ds['radar_labels']), @json(array_column($ds['categorias'], 'score')), @json($ds['radar_cores']));
 @endforeach
 @endif
 </script>

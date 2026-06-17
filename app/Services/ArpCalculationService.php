@@ -43,6 +43,116 @@ class ArpCalculationService
         'Violência no trabalho / Assédio'               => 'Implementar política de tolerância zero a qualquer forma de assédio e violência. Criar canal de denúncias sigiloso e realizar treinamentos de prevenção.',
     ];
 
+    private const FONTES_GERADORAS = [
+        'Funções e expectativas' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Ausência de descrição formal de cargo ou desalinhamento entre as atribuições reais exercidas e as previstas, dificultando o entendimento mútuo entre liderança e equipe.',
+            'Elevado' => 'Inexistência de critérios objetivos de desempenho esperado, fazendo com que o trabalhador não saiba claramente como está sendo avaliado.',
+            'Extremo' => 'Sobreposição de funções entre diferentes colaboradores ou setores, gerando conflitos sobre quem deve executar determinada tarefa.',
+        ],
+        'Controle de trabalho ou autonomia' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Ausência de espaço para o trabalhador influenciar o ritmo, a ordem ou o método de realização do seu trabalho.',
+            'Elevado' => 'Microgerenciamento constante por parte da liderança, reduzindo a sensação de competência e controle do colaborador sobre suas atividades.',
+            'Extremo' => 'Falta de flexibilidade nos processos para que o trabalhador proponha melhorias ou ajustes na forma como o trabalho é realizado.',
+        ],
+        'Demandas de trabalho' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Metas desproporcionais à estrutura oferecida pela empresa, exigindo esforço além da capacidade sustentável do trabalhador.',
+            'Elevado' => 'Acúmulo de funções não previstas no cargo original, ampliando a carga de trabalho sem ajuste correspondente de prazo ou remuneração.',
+            'Extremo' => 'Complexidade das tarefas superior ao nível de capacitação oferecido, gerando pressão e insegurança na execução.',
+        ],
+        'Gestão de mudança organizacional' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Ausência de treinamento ou suporte adequado durante períodos de transição, reestruturação ou adoção de novas ferramentas.',
+            'Elevado' => 'Falta de participação dos colaboradores no processo de mudança, gerando resistência, insegurança e percepção de perda de controle.',
+            'Extremo' => 'Mudanças frequentes e mal planejadas que geram instabilidade constante e dificultam a criação de rotinas e previsibilidade no trabalho.',
+        ],
+        'Trabalho e ritmo de trabalho' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Ausência de controle do trabalhador sobre o próprio ritmo, com cadência determinada exclusivamente por máquinas, sistemas ou metas externas.',
+            'Elevado' => 'Picos de demanda recorrentes sem ajuste de equipe ou prazo, obrigando intensificação do ritmo de forma não sustentável.',
+            'Extremo' => 'Falta de monitoramento da fadiga acumulada, permitindo que o ritmo de trabalho avance sem critérios de segurança e bem-estar.',
+        ],
+        'Horários de trabalho e cronograma' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Escalas de trabalho definidas sem consulta prévia ao colaborador, dificultando a organização da vida pessoal e familiar.',
+            'Elevado' => 'Convocações de última hora para horas extras ou mudanças de turno, sem antecedência mínima razoável.',
+            'Extremo' => 'Ausência de política clara sobre compensação de horas, banco de horas ou intervalos, gerando insegurança quanto aos próprios direitos.',
+        ],
+        'Segurança sobre desemprego e trabalhos precários' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Política salarial e de benefícios desatualizada ou não competitiva, gerando percepção de desequilíbrio entre o esforço empregado e a recompensa financeira.',
+            'Elevado' => 'Sazonalidade ou instabilidade econômica do negócio que impacta diretamente na carga horária e na composição da remuneração variável do trabalhador.',
+            'Extremo' => 'Gestão administrativa ou financeira irregular que falha no recolhimento de encargos legais e direitos trabalhistas, gerando insegurança quanto à proteção social do empregado.',
+        ],
+        'Ambiente de trabalho, equipamentos e tarefas perigosas' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Falhas no projeto luminotécnico ou falta de manutenção em luminárias, resultando em níveis de iluminamento (lux) insuficientes ou excessivos para a execução segura da tarefa.',
+            'Elevado' => 'Operação de maquinário pesado sem isolamento acústico e ausência de um programa de gestão de proteção auditiva que garanta o fornecimento e a fiscalização do uso de protetores auriculares.',
+            'Extremo' => 'Deficiência no planejamento logístico e de suprimentos da empresa, obrigando o trabalhador a improvisar métodos de trabalho ou a interromper seu fluxo produtivo por falta de insumos.',
+        ],
+        'Relações interpessoais' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Cultura organizacional com baixa gestão de conflitos e falta de treinamento em competências socioemocionais, favorecendo interações interpessoais desgastantes ou hostis.',
+            'Elevado' => 'Ambiente de alta competitividade ou desorganização de processos que gera sobreposição de responsabilidades, culminando em atritos e disputas diretas entre os pares.',
+            'Extremo' => 'Estrutura de trabalho individualizada e ausência de práticas de cooperação ou suporte mútuo incentivadas pela liderança.',
+        ],
+        'Liderança' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Cultura organizacional centralizadora e falta de canais formais de escuta ativa, invalidando a participação dos colaboradores na melhoria dos processos e na resolução de problemas cotidianos.',
+            'Elevado' => 'Estrutura de comunicação verticalizada que retém informações críticas, dificultando a previsibilidade das tarefas e a autonomia dos subordinados.',
+            'Extremo' => 'Inexistência de códigos de conduta rigorosos e de mecanismos de fiscalização comportamental, permitindo estilos de gestão baseados no autoritarismo ou na pressão psicológica excessiva.',
+        ],
+        'Cultura organizacional' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Ausência de políticas estruturadas de treinamento, planos de carreira ou programas de incentivo à qualificação, o que limita as perspectivas de crescimento e a valorização do capital humano dentro da organização.',
+            'Elevado' => 'Cultura institucional fundamentada em cobranças desproporcionais e falta de acolhimento social, permitindo que a pressão por resultados se transforme em práticas de gestão autoritárias sem a devida mediação de conduta.',
+            'Extremo' => 'Falta de transparência nos critérios de recompensa, promoção e punição, aliada a uma aplicação desigual das regras internas que favorece a percepção de favoritismo ou injustiça organizacional.',
+        ],
+        'Reconhecimento e recompensa' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Falta de agilidade nos processos administrativos de promoção ou premiação e ausência de uma cultura de feedback imediato, gerando um distanciamento entre a entrega do resultado e a gratificação correspondente.',
+            'Elevado' => 'Políticas de recompensa limitadas ou inexistentes que não contemplam formas simbólicas ou financeiras de valorizar as competências e as superações dos colaboradores.',
+            'Extremo' => 'Cultura organizacional que foca excessivamente na correção de falhas e ignora as conquistas, gerando um sentimento de invisibilidade e baixo senso de pertencimento no trabalhador.',
+        ],
+        'Desenvolvimento de carreira' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Cultura organizacional com baixa rotatividade em cargos de nível superior e ausência de programas de incentivo à qualificação, resultando na percepção de que o tempo de serviço não se traduz em crescimento profissional.',
+            'Elevado' => 'Ausência de políticas de recrutamento interno, programas de mentoria ou de sucessão, priorizando contratações externas em detrimento da valorização e capacitação do capital humano já existente na empresa.',
+            'Extremo' => 'Ausência de políticas de recrutamento interno, programas de mentoria ou de sucessão, priorizando contratações externas em detrimento da valorização e capacitação do capital humano já existente na empresa.',
+        ],
+        'Apoio e suporte' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Deficiência no dimensionamento das equipes de apoio técnico e administrativo ou excesso de burocracia nos fluxos internos, dificultando a resolução de problemas operacionais que impactam a execução do trabalho.',
+            'Elevado' => 'Inexistência de um programa estruturado de integração e educação continuada, somada a falhas na comunicação interna que não provê os dados necessários para a realização segura e eficiente das tarefas.',
+            'Extremo' => 'Inexistência de um programa estruturado de integração e educação continuada, somada a falhas na comunicação interna que não provê os dados necessários para a realização segura e eficiente das tarefas.',
+        ],
+        'Supervisão / Gerência' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Ausência de políticas formais de valorização do colaborador e estilo de gestão focado exclusivamente em metas numéricas, ignorando o suporte motivacional e o esforço individual.',
+            'Elevado' => 'Falta de transparência nos processos decisórios e aplicação subjetiva de normas internas, permitindo que critérios pessoais ou favoritismos prevaleçam sobre o mérito técnico.',
+            'Extremo' => 'Modelo de gestão baseado no controle punitivo e na desconfiança, utilizando recursos tecnológicos para monitoramento invasivo do comportamento em vez de focar na segurança ou no suporte operacional.',
+        ],
+        'Civilidade e respeito' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Falta de treinamento em atendimento humanizado e pressão excessiva por produtividade (metas com prazos curtos), que levam à priorização da velocidade em detrimento da qualidade e da civilidade no trato com o público externo.',
+            'Elevado' => 'Ambiente de trabalho com alta competitividade estimulada pela gestão, ausência de mediação de conflitos e falta de apoio social entre os pares, favorecendo um clima de hostilidade.',
+            'Extremo' => 'Ausência de canais formais e seguros para reportar condutas desrespeitosas, fazendo com que situações de incivilidade não sejam tratadas ou corrigidas a tempo.',
+        ],
+        'Equilíbrio Trabalho / Vida' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Rigidez extrema nos cronogramas e horários de trabalho, aliada à falta de políticas de flexibilidade que permitam ao trabalhador conciliar imprevistos ou responsabilidades familiares com suas obrigações laborais.',
+            'Elevado' => 'Cultura organizacional de hiperconectividade ou exigência de disponibilidade constante (ex: horas extras imprevistas), que impede o desligamento mental total e a recomposição fisiológica necessária nos períodos de folga.',
+            'Extremo' => 'Cultura organizacional de hiperconectividade ou exigência de disponibilidade constante (ex: horas extras imprevistas), que impede o desligamento mental total e a recomposição fisiológica necessária nos períodos de folga.',
+        ],
+        'Violência no trabalho / Assédio / intimidações e vitimização' => [
+            'Insignificante' => 'Não há evidência de risco de acordo com o perigo avaliado.',
+            'Moderado' => 'Falta de diversidade na governança corporativa e ausência de critérios objetivos e imparciais para promoções, contratações e desligamentos, favorecendo vieses inconscientes ou conscientes.',
+            'Elevado' => 'Modelos de gestão baseados no medo ou na coerção para o atingimento de metas, aliados à falta de treinamento comportamental para lideranças e colaboradores.',
+            'Extremo' => 'Falha sistêmica na proteção da integridade biopsicossocial do trabalhador e ausência de programas de apoio psicológico ou canais de denúncia seguros e anônimos.',
+        ],
+    ];
     /**
      * Processa resultados de uma empresa.
      * Se $setor for informado, filtra apenas os respondentes daquele setor.
@@ -95,6 +205,8 @@ class ArpCalculationService
                 'cor'          => $nivel['cor'],
                 'respondentes' => count($valores),
                 'recomendacao' => self::RECOMENDACOES[$nome] ?? 'Monitorar e revisar periodicamente.',
+                'fonte_geradora' => self::FONTES_GERADORAS[$nome][$nivel['label']] ?? 'Não há evidência de risco de acordo com o perigo avaliado.',
+
             ];
         }
 

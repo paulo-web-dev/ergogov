@@ -614,11 +614,18 @@ table.rel tr:hover td { background: var(--verde5); }
     <div class="subsecao-titulo">Distribuição de respondentes por setor</div>
     <div class="tabela-wrap">
       <table class="rel">
-        <tr><th>Setor</th><th style="width:140px;text-align:center;">Respondentes</th></tr>
-        @foreach($respondentes as $setor => $qtd)
+        <tr>
+          <th>Setor</th>
+          <th style="width:120px;text-align:center;">Respondentes</th>
+          <th>Cargo</th>
+          <th>Descrição do Cargo</th>
+        </tr>
+        @foreach($respondentes as $setor => $info)
         <tr>
           <td>{{ $setor }}</td>
-          <td style="text-align:center;font-weight:700;">{{ $qtd }}</td>
+          <td style="text-align:center;font-weight:700;">{{ $info['qtd'] }}</td>
+          <td>{{ $info['cargo'] ?? 'Não informado' }}</td>
+          <td>{{ $info['descricao_cargo'] ?? 'Não informado' }}</td>
         </tr>
         @endforeach
       </table>
@@ -890,13 +897,15 @@ table.rel tr:hover td { background: var(--verde5); }
           <th>Setor</th>
           <th style="text-align:center;">Respondentes</th>
           <th style="text-align:center;">% Participação</th>
+          <th>Cargo</th>
+          <th>Descrição do Cargo</th>
         </tr>
-        @php $totalResp = $respondentes->sum(); @endphp
-        @foreach($respondentes as $setor => $qtd)
-        @php $pct = $totalResp > 0 ? round(($qtd/$totalResp)*100) : 0; @endphp
+        @php $totalResp = $respondentes->sum(fn($info) => $info['qtd']); @endphp
+        @foreach($respondentes as $setor => $info)
+        @php $pct = $totalResp > 0 ? round(($info['qtd']/$totalResp)*100) : 0; @endphp
         <tr>
           <td>{{ $setor }}</td>
-          <td style="text-align:center;font-weight:700;">{{ $qtd }}</td>
+          <td style="text-align:center;font-weight:700;">{{ $info['qtd'] }}</td>
           <td>
             <div class="barra-wrap">
               <div class="barra-track">
@@ -905,6 +914,8 @@ table.rel tr:hover td { background: var(--verde5); }
               <span class="barra-val">{{ $pct }}%</span>
             </div>
           </td>
+          <td>{{ $info['cargo'] ?? 'Não informado' }}</td>
+          <td>{{ $info['descricao_cargo'] ?? 'Não informado' }}</td>
         </tr>
         @endforeach
       </table>
@@ -1025,7 +1036,7 @@ table.rel tr:hover td { background: var(--verde5); }
             <th>Categoria</th>
             <th>Ação Recomendada</th>
             <th style="width:80px;text-align:center;">Score</th>
-            <th style="width:90px;text-align:center;">Risco</th>
+            <th style="width:90px;text-align:center;">Nível</th>
           </tr>
           @php
             $prioridades = [
@@ -1075,7 +1086,7 @@ table.rel tr:hover td { background: var(--verde5); }
           <th>Categoria</th>
           <th>Ação Recomendada</th>
           <th style="width:100px;text-align:center;">Score</th>
-          <th style="width:100px;text-align:center;">Risco</th>
+          <th style="width:100px;text-align:center;">Nível</th>
         </tr>
         @php
           $prioridades = [

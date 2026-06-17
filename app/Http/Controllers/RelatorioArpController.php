@@ -51,11 +51,17 @@ class RelatorioArpController extends Controller
                 fn($r) => ($r->funcionario->setor ?? 'Não informado') === $setorAtual
             );
         }
-    
         $respondentes = $resultados
-            ->groupBy(fn($r) => $r->funcionario->setor ?? 'Não informado')
-            ->map(fn($g) => $g->pluck('id_func')->unique()->count());
+        ->groupBy(fn($r) => $r->funcionario->setor ?? 'Não informado')
+        ->map(function ($g) {
+            $primeiroFuncionario = $g->first()->funcionario;
     
+            return [
+                'qtd'             => $g->pluck('id_func')->unique()->count(),
+                'cargo'           => $primeiroFuncionario->cargo ?? null,
+                'descricao_cargo' => $primeiroFuncionario->descricao_cargo ?? null,
+            ];
+        });
         // ── Dados individuais por setor (apenas no relatório global) ──────────
         $dadosPorSetor = [];
         if (!$setorAtual && !empty($setores)) {

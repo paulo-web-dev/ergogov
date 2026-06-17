@@ -7,6 +7,7 @@ use App\Models\Empresas;
 use App\Models\IdentidadeVisual;
 use App\Models\ResultadoRespostaArp;
 use App\Services\ArpCalculationService;
+use App\Models\ColaboradorArp;
 use Auth;
 
 class RelatorioArpController extends Controller
@@ -51,17 +52,28 @@ class RelatorioArpController extends Controller
                 fn($r) => ($r->funcionario->setor ?? 'Não informado') === $setorAtual
             );
         }
-        $respondentes = $resultados
-        ->groupBy(fn($r) => $r->funcionario->setor ?? 'Não informado')
-        ->map(function ($g) {
-            $primeiroFuncionario = $g->first()->funcionario;
     
-            return [
-                'qtd'             => $g->pluck('id_func')->unique()->count(),
-                'cargo'           => $primeiroFuncionario->cargo ?? null,
-                'descricao_cargo' => $primeiroFuncionario->descricao_cargo ?? null,
-            ];
-        });
+        // Colaboradores cadastrados desta empresa, indexados por e-mail.
+        // cargo/descricao_cargo vivem em colaboradores_arp, não em
+        // funcionario_questionario_arp — por isso o cruzamento por e-mail.
+        $colaboradoresPorEmail = ColaboradorArp::where('id_empresa', $id)
+            ->get()
+            ->keyBy(fn($c) => strtolower(trim($c->email)));
+    
+        $respondentes = $resultados
+            ->groupBy(fn($r) => $r->funcionario->setor ?? 'Não informado')
+            ->map(function ($g) use ($colaboradoresPorEmail) {
+                $primeiroFuncionario = $g->first()->funcionario;
+                $emailNormalizado    = strtolower(trim($primeiroFuncionario->email ?? ''));
+                $colaborador         = $colaboradoresPorEmail->get($emailNormalizado);
+    
+                return [
+                    'qtd'             => $g->pluck('id_func')->unique()->count(),
+                    'cargo'           => $colaborador->cargo ?? null,
+                    'descricao_cargo' => $colaborador->descricao_cargo ?? null,
+                ];
+            });
+    
         // ── Dados individuais por setor (apenas no relatório global) ──────────
         $dadosPorSetor = [];
         if (!$setorAtual && !empty($setores)) {

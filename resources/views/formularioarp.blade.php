@@ -304,7 +304,7 @@ body {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 7h.01M9 11h.01M9 15h.01"/></svg>
             {{ $empresa->nome }}
         </div>
-        <h1>Questionário Ergonômico</h1>
+        <h1>Questionário - Avaliação dos Fatores de Riscos Psicossociais</h1>
         <p>
             Neste questionário você encontrará questões referentes às situações relacionadas ao trabalho.
             Para responder, selecione a opção que melhor representa sua opinião.

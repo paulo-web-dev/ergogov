@@ -263,12 +263,20 @@ class ArpCalculationService
 
     public function classificar(float $score): array
     {
+        // Bandas contíguas por limite inferior. NIVEIS está ordenado do maior
+        // 'min' para o menor, então o primeiro match é a faixa correta.
+        //
+        // Antes o teste era ($score >= min && $score <= max) com min/max INTEIROS.
+        // Como o score é float, qualquer valor nas lacunas — (4,5), (8,9),
+        // (12,13), (16,17), ex.: 8.5 ou 12.7 — não caía em nenhuma faixa e
+        // escorregava para o fallback self::NIVEIS[4] (Insignificante/cinza).
+        // Era por isso que barras longas apareciam cinzas no relatório.
         foreach (self::NIVEIS as $nivel) {
-            if ($score >= $nivel['min'] && $score <= $nivel['max']) {
+            if ($score >= $nivel['min']) {
                 return $nivel;
             }
         }
-        return self::NIVEIS[4];
+        return self::NIVEIS[array_key_last(self::NIVEIS)];
     }
 
     private function emptyResult(): array

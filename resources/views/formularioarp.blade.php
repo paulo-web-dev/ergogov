@@ -396,7 +396,7 @@ body {
         </button>
     </form>
 
-    <p class="arp-footer">ergo.gov © {{ date('Y') }} · Sistema de Gestão Ergonômica</p>
+    <p class="arp-footer">avalia.one © {{ date('Y') }} · Sistema de Gestão Ergonômica</p>
 </div>
 
 <script>

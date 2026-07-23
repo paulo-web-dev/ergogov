@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\ColaboradorArp;
 use App\Models\ConviteArp;
 use App\Models\Empresas;
+use App\Models\FuncionarioQuestionarioArp;
 use App\Services\ConviteArpService;
 use App\Jobs\EnviarConviteArpJob;
 use Illuminate\Http\Request;
@@ -27,6 +28,26 @@ class ColaboradorArpController extends Controller
             ->with(['conviteAtivo'])
             ->orderBy('nome')
             ->paginate(50);
+
+        // ── Setor/função vindos do "DOC de ARP" ───────────────────────────────
+        // O setor real é o que a pessoa preencheu no formulário e foi gravado em
+        // funcionario_questionario_arp (colunas setor/funcao) — não em
+        // colaboradores_arp. Cruzamos por e-mail (mesma lógica do relatório) e
+        // anexamos a cada colaborador. orderBy('id') garante que, havendo mais de
+        // uma resposta para o mesmo e-mail, prevaleça a última.
+        $docPorEmail = FuncionarioQuestionarioArp::where('id_empresa', $idEmpresa)
+            ->orderBy('id')
+            ->get(['email', 'setor', 'funcao'])
+            ->keyBy(fn ($f) => mb_strtolower(trim((string) $f->email)));
+
+        foreach ($colaboradores as $c) {
+            $doc = $docPorEmail->get(mb_strtolower(trim((string) $c->email)));
+
+            // Prioriza o que veio do DOC de ARP; se ainda não respondeu, cai para
+            // o que estiver no cadastro do colaborador.
+            $c->setor_doc  = filled($doc?->setor)  ? $doc->setor  : ($c->setor ?: null);
+            $c->funcao_doc = filled($doc?->funcao) ? $doc->funcao : ($c->cargo ?: null);
+        }
 
         return view('arp.colaboradores.index', compact('empresa', 'kpis', 'colaboradores'));
     }

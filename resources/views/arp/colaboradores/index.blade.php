@@ -204,8 +204,8 @@
           </div>
         </td>
         <td style="padding:13px 18px;font-size:13px;color:#4A5D53;">
-          {{ $c->cargo ?? '—' }}
-          @if($c->setor)<span style="color:#94A199;"> · {{ $c->setor }}</span>@endif
+          {{ $c->funcao_doc ?? '—' }}
+          @if($c->setor_doc)<span style="color:#94A199;"> · {{ $c->setor_doc }}</span>@endif
         </td>
         <td style="padding:13px 18px;text-align:center;">
           <span style="display:inline-block;padding:3px 10px;border-radius:20px;background:{{ $bg }};color:{{ $fg }};font-size:11.5px;font-weight:600;">

@@ -21,35 +21,89 @@ class ColaboradorArpController extends Controller
     {
         $empresa = Empresas::findOrFail($idEmpresa);
         abort_unless($empresa->id_user == Auth::user()->id_instituicao, 403);
-
-        $kpis = $this->service->kpis($idEmpresa);
-
-        $colaboradores = ColaboradorArp::where('id_empresa', $idEmpresa)
-            ->with(['conviteAtivo'])
+    
+        // ── Base ÚNICA: KPIs e tabela saem daqui, então os números sempre fecham ──
+        $todos = ColaboradorArp::where('id_empresa', $idEmpresa)
+            ->with('conviteAtivo')
             ->orderBy('nome')
-            ->paginate(50);
-
-        // ── Setor/função vindos do "DOC de ARP" ───────────────────────────────
+            ->get();
+    
+        // Status normalizado (derivado das datas, não do campo status do convite,
+        // que pode estar desatualizado quando a resposta chega pelo link público).
+        $todos->each(fn ($c) => $c->status_convite = $this->statusConvite($c));
+    
+        // KPIs contam apenas ATIVOS (é o que o card promete: "cadastrados e ativos")
+        $ativos = $todos->where('status', 'ativo');
+    
+        $total       = $ativos->count();
+        $respondidos = $ativos->where('status_convite', 'respondido')->count();
+        $enviados    = $ativos->whereIn('status_convite', ['enviado', 'respondido', 'expirado'])->count();
+        $semResposta = max($enviados - $respondidos, 0);   // recebeu E não respondeu
+        $naoEnviados = max($total - $enviados, 0);         // nunca recebeu
+    
+        $kpis = [
+            'colaboradores' => $total,
+            'cadastrados'   => $todos->count(),   // inclui inativos (tabela mostra todos)
+            'inativos'      => $todos->count() - $total,
+            'enviados'      => $enviados,         // inclui os que já responderam
+            'respondidos'   => $respondidos,
+            'sem_resposta'  => $semResposta,
+            'nao_enviados'  => $naoEnviados,
+            'convidados'    => $total,
+            'taxa'          => $total > 0 ? (int) round($respondidos / $total * 100) : 0,
+            'taxa_enviados' => $enviados > 0 ? (int) round($respondidos / $enviados * 100) : 0,
+        ];
+    
+        // ── Paginação sobre a mesma coleção ──────────────────────────────────────
+        $perPage = 50;
+        $page    = LengthAwarePaginator::resolveCurrentPage();
+    
+        $colaboradores = new LengthAwarePaginator(
+            $todos->forPage($page, $perPage)->values(),
+            $todos->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+    
+        // ── Setor/função vindos do "DOC de ARP" ──────────────────────────────────
         // O setor real é o que a pessoa preencheu no formulário e foi gravado em
-        // funcionario_questionario_arp (colunas setor/funcao) — não em
-        // colaboradores_arp. Cruzamos por e-mail (mesma lógica do relatório) e
-        // anexamos a cada colaborador. orderBy('id') garante que, havendo mais de
-        // uma resposta para o mesmo e-mail, prevaleça a última.
+        // funcionario_questionario_arp. Cruzamos por e-mail (mesma lógica do
+        // relatório). orderBy('id') faz prevalecer a última resposta do mesmo e-mail.
         $docPorEmail = FuncionarioQuestionarioArp::where('id_empresa', $idEmpresa)
             ->orderBy('id')
             ->get(['email', 'setor', 'funcao'])
             ->keyBy(fn ($f) => mb_strtolower(trim((string) $f->email)));
-
+    
         foreach ($colaboradores as $c) {
             $doc = $docPorEmail->get(mb_strtolower(trim((string) $c->email)));
-
-            // Prioriza o que veio do DOC de ARP; se ainda não respondeu, cai para
-            // o que estiver no cadastro do colaborador.
+    
             $c->setor_doc  = filled($doc?->setor)  ? $doc->setor  : ($c->setor ?: null);
             $c->funcao_doc = filled($doc?->funcao) ? $doc->funcao : ($c->cargo ?: null);
         }
-
+    
         return view('arp.colaboradores.index', compact('empresa', 'kpis', 'colaboradores'));
+    }
+    
+    /**
+     * Status real do convite, derivado das datas (fonte da verdade).
+     * respondido > enviado > expirado > pendente > sem_convite
+     */
+    private function statusConvite($c): string
+    {
+        $convite = $c->conviteAtivo;
+    
+        if (!$convite) {
+            return 'sem_convite';
+        }
+        if (filled($convite->respondido_em)) {
+            return 'respondido';
+        }
+        if (filled($convite->enviado_em)) {
+            return ($convite->status === 'expirado') ? 'expirado' : 'enviado';
+        }
+    
+        return 'pendente';
     }
 
     public function create(int $idEmpresa)

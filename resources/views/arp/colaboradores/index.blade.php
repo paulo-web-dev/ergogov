@@ -28,13 +28,15 @@
   <div style="background:#fff;border:1px solid #ECF0EE;border-radius:12px;padding:16px 18px;border-top:3px solid #3B82F6;">
     <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#6B7B72;margin-bottom:8px;">Colaboradores</div>
     <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em;color:#0F1A14;line-height:1;">{{ $kpis['colaboradores'] }}</div>
-    <div style="font-size:11px;color:#94A199;margin-top:4px;">cadastrados e ativos</div>
+    <div style="font-size:11px;color:#94A199;margin-top:4px;">
+      ativos@if($kpis['inativos'] > 0) · {{ $kpis['inativos'] }} inativo(s)@endif
+    </div>
   </div>
 
   <div style="background:#fff;border:1px solid #ECF0EE;border-radius:12px;padding:16px 18px;border-top:3px solid #8B5CF6;">
     <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#6B7B72;margin-bottom:8px;">Enviados</div>
     <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em;color:#0F1A14;line-height:1;">{{ $kpis['enviados'] }}</div>
-    <div style="font-size:11px;color:#94A199;margin-top:4px;">e-mail entregue</div>
+    <div style="font-size:11px;color:#94A199;margin-top:4px;">convites entregues (inclui respondidos)</div>
   </div>
 
   <div style="background:#fff;border:1px solid #ECF0EE;border-radius:12px;padding:16px 18px;border-top:3px solid #10B981;">
@@ -52,26 +54,37 @@
   <div style="background:#fff;border:1px solid #ECF0EE;border-radius:12px;padding:16px 18px;border-top:3px solid #1F6B43;">
     <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#6B7B72;margin-bottom:8px;">Taxa</div>
     <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em;color:#1F6B43;line-height:1;">{{ $kpis['taxa'] }}%</div>
-    <div style="font-size:11px;color:#94A199;margin-top:4px;">de conclusão</div>
+    <div style="font-size:11px;color:#94A199;margin-top:4px;">{{ $kpis['respondidos'] }} de {{ $kpis['colaboradores'] }} ativos</div>
   </div>
 
 </div>
 
 {{-- Progress bar --}}
-@if($kpis['convidados'] > 0)
+@if($kpis['colaboradores'] > 0)
+@php
+  $tot     = max($kpis['colaboradores'], 1);
+  $pctResp = $kpis['respondidos']  / $tot * 100;
+  $pctSem  = $kpis['sem_resposta'] / $tot * 100;
+  $pctNao  = $kpis['nao_enviados'] / $tot * 100;
+@endphp
 <div style="background:#fff;border:1px solid #ECF0EE;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
   <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
     <span style="font-weight:600;color:#0F1A14;">Progresso da pesquisa</span>
-    <span style="color:#6B7B72;">{{ $kpis['respondidos'] }} / {{ $kpis['convidados'] }} respondidos</span>
+    <span style="color:#6B7B72;">{{ $kpis['respondidos'] }} / {{ $kpis['colaboradores'] }} respondidos</span>
   </div>
-  <div style="height:8px;background:#ECF0EE;border-radius:4px;overflow:hidden;">
-    <div style="height:100%;width:{{ $kpis['taxa'] }}%;background:linear-gradient(90deg,#2D8659,#5FB894);border-radius:4px;transition:width 0.8s ease;"></div>
+  <div style="height:8px;background:#ECF0EE;border-radius:4px;overflow:hidden;display:flex;">
+    <div style="height:100%;width:{{ $pctResp }}%;background:linear-gradient(90deg,#2D8659,#5FB894);transition:width 0.8s ease;"></div>
+    <div style="height:100%;width:{{ $pctSem }}%;background:#F59E0B;"></div>
+    <div style="height:100%;width:{{ $pctNao }}%;background:#EF4444;"></div>
   </div>
-  <div style="display:flex;gap:16px;margin-top:10px;font-size:11.5px;color:#6B7B72;">
+  <div style="display:flex;gap:16px;margin-top:10px;font-size:11.5px;color:#6B7B72;flex-wrap:wrap;">
     <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block;"></span> {{ $kpis['respondidos'] }} responderam</span>
     <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;display:inline-block;"></span> {{ $kpis['sem_resposta'] }} receberam mas não responderam</span>
     @if($kpis['nao_enviados'] > 0)
     <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:#EF4444;display:inline-block;"></span> {{ $kpis['nao_enviados'] }} aguardando envio</span>
+    @endif
+    @if($kpis['enviados'] > 0)
+    <span style="margin-left:auto;color:#94A199;">{{ $kpis['taxa_enviados'] }}% de resposta entre quem recebeu</span>
     @endif
   </div>
 </div>
@@ -147,11 +160,11 @@
   <div style="display:flex;border-bottom:1px solid #ECF0EE;">
     <button onclick="filterStatus('todos')" data-filter="todos"
       style="padding:10px 16px;border:none;background:none;font-size:12.5px;font-weight:600;color:#1F6B43;cursor:pointer;border-bottom:2px solid #1F6B43;">
-      Todos ({{ $colaboradores->total() }})
+      Todos ({{ $kpis['cadastrados'] }})
     </button>
     <button onclick="filterStatus('enviado')" data-filter="enviado"
       style="padding:10px 16px;border:none;background:none;font-size:12.5px;font-weight:600;color:#6B7B72;cursor:pointer;border-bottom:2px solid transparent;">
-      Enviados ({{ $kpis['enviados'] }})
+      Sem resposta ({{ $kpis['sem_resposta'] }})
     </button>
     <button onclick="filterStatus('respondido')" data-filter="respondido"
       style="padding:10px 16px;border:none;background:none;font-size:12.5px;font-weight:600;color:#6B7B72;cursor:pointer;border-bottom:2px solid transparent;">
@@ -177,14 +190,14 @@
     <tbody>
       @foreach($colaboradores as $c)
       @php
-        $convite = $c->conviteAtivo;
-        $statusConvite = $convite?->status ?? 'sem_convite';
+        $convite       = $c->conviteAtivo;
+        $statusConvite = $c->status_convite;   // calculado no controller
         $badgeMap = [
           'respondido'  => ['✅ Respondido',       '#E7F4EC', '#15703D'],
-          'enviado'     => ['✉️ Enviado',           '#EEF2FF', '#4338CA'],
-          'pendente'    => ['⏳ Aguardando envio',  '#FEF2F2', '#B91C1C'],
-          'expirado'    => ['⏰ Expirado',          '#FFF7ED', '#B45309'],
-          'sem_convite' => ['— Sem convite',        '#F9FAFB', '#6B7280'],
+          'enviado'     => ['✉️ Sem resposta',     '#FFFBEB', '#B45309'],
+          'pendente'    => ['⏳ Aguardando envio', '#FEF2F2', '#B91C1C'],
+          'expirado'    => ['⏰ Expirado',         '#FFF7ED', '#B45309'],
+          'sem_convite' => ['— Sem convite',       '#F9FAFB', '#6B7280'],
         ];
         [$label, $bg, $fg] = $badgeMap[$statusConvite] ?? ['—', '#F9FAFB', '#6B7280'];
       @endphp
@@ -194,11 +207,16 @@
           data-search="{{ strtolower($c->nome . ' ' . $c->email) }}">
         <td style="padding:13px 18px;">
           <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1F6B43,#0F3D2A);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1F6B43,#0F3D2A);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;opacity:{{ $c->status === 'ativo' ? '1' : '0.4' }};">
               {{ strtoupper(substr($c->nome, 0, 1)) }}
             </div>
             <div>
-              <div style="font-size:14px;font-weight:600;color:#0F1A14;">{{ $c->nome }}</div>
+              <div style="font-size:14px;font-weight:600;color:#0F1A14;">
+                {{ $c->nome }}
+                @if($c->status !== 'ativo')
+                <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#94A199;border:1px solid #DBE2DD;border-radius:4px;padding:1px 5px;margin-left:6px;">inativo</span>
+                @endif
+              </div>
               <div style="font-size:12px;color:#6B7B72;">{{ $c->email }}</div>
             </div>
           </div>
@@ -294,7 +312,12 @@ function filterStatus(status) {
         btn.style.color = active ? '#1F6B43' : '#6B7B72';
     });
     document.querySelectorAll('#colabTable tbody tr').forEach(row => {
-        row.style.display = (status === 'todos' || row.dataset.status === status) ? '' : 'none';
+        const s = row.dataset.status;
+        let show = status === 'todos'
+            || s === status
+            || (status === 'enviado'  && s === 'expirado')
+            || (status === 'pendente' && s === 'sem_convite');
+        row.style.display = show ? '' : 'none';
     });
 }
 

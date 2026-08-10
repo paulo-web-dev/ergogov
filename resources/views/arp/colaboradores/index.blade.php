@@ -29,7 +29,7 @@
     <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#6B7B72;margin-bottom:8px;">Colaboradores</div>
     <div style="font-size:28px;font-weight:800;letter-spacing:-0.02em;color:#0F1A14;line-height:1;">{{ $kpis['colaboradores'] }}</div>
     <div style="font-size:11px;color:#94A199;margin-top:4px;">
-      ativos@if($kpis['inativos'] > 0) · {{ $kpis['inativos'] }} inativo(s)@endif
+      ativos{{ $kpis['inativos'] > 0 ? ' · ' . $kpis['inativos'] . ' inativo(s)' : '' }}
     </div>
   </div>
 

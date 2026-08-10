@@ -7,6 +7,7 @@ use App\Models\Empresas;
 use App\Models\FuncionarioQuestionarioArp;
 use App\Services\ConviteArpService;
 use App\Jobs\EnviarConviteArpJob;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Auth;
 

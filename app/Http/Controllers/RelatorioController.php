@@ -19,41 +19,63 @@ class RelatorioController extends Controller
     {
         $this->middleware('auth');
     }
-    public function gerarRelatorio($id){
-
+ 
+    public function gerarRelatorio($id)
+    {
         $identidade = IdentidadeVisual::where('id_user', $id)->first();
-
+ 
         $alert = 0;
-        if(!isset($identidade)){
+        if (!isset($identidade)) {
             $identidade = new IdentidadeVisual();
             $identidade->cor_principal = '#027dc3';
-            $identidade->foto_empresa = 'logo_plataforma_um%20(1).jpeg';
+            $identidade->foto_empresa  = 'logo_plataforma_um%20(1).jpeg';
+            $identidade->tipo          = 1;
             $alert = 1;
-        }
-       
+        }      
+ 
+        // Eager load completo (inclui a árvore área → setor → posto) para não
+        // disparar N+1 e para o blade poder decidir quebras de página com tudo em mãos.
         $empresa = Empresas::where('id', $id)
-        ->with('setores')
-        ->with('introducao')
-        ->with('equipe')
-        ->with('objetivos')
-        ->with('disposicao')
-        ->with('mapeamento')
-        ->with('planodeacao')
-        ->with('responsaveis')
-        ->with('metodologia')
-        ->with('demanda')
-        ->with('analise')
-        ->with('area')
-        ->with('rodape')
-        ->with('cabecalho') 
-        ->first();
-        return view('relatorio',[
-            'empresa' => $empresa,
+            ->with([
+                'setores', 'introducao', 'equipe', 'objetivos', 'disposicao',
+                'mapeamento', 'planodeacao', 'responsaveis', 'metodologia',
+                'demanda', 'analise', 'rodape', 'cabecalho',
+                'area.setores.subsetores.funcao',
+                'area.setores.subsetores.tarefa',
+                'area.setores.subsetores.analiseAtividade',
+                'area.setores.subsetores.fotosatividade',
+                'area.setores.subsetores.descricaoFotos',
+                'area.setores.subsetores.dadosOrganizacionais',
+                'area.setores.subsetores.populacaosubsetor',
+                'area.setores.subsetores.dadossaude.segmentos',
+                'area.setores.subsetores.caracteristicas',
+                'area.setores.subsetores.preDiagnostico',
+                'area.setores.subsetores.conclusoes',
+                'area.setores.subsetores.conclusao',
+                'area.setores.subsetores.recomendacao',
+                'area.setores.subsetores.moore',
+                'area.setores.subsetores.rula',
+                'area.setores.subsetores.owas',
+                'area.setores.subsetores.suerodgers',
+                'area.setores.subsetores.ChecklistCadeira',
+            ])
+            ->firstOrFail();
+ 
+        $meses = [
+            1 => 'janeiro', 2 => 'fevereiro', 3 => 'março', 4 => 'abril',
+            5 => 'maio', 6 => 'junho', 7 => 'julho', 8 => 'agosto',
+            9 => 'setembro', 10 => 'outubro', 11 => 'novembro', 12 => 'dezembro',
+        ];
+ 
+        return view('relatorio', [
+            'empresa'    => $empresa,
             'identidade' => $identidade,
-            'alert' => $alert,
+            'alert'      => $alert,
+            'dataExtenso' => sprintf('%s, %02d de %s de %d',
+                $empresa->cidade ?: 'Jundiaí', (int) date('d'), $meses[(int) date('m')], (int) date('Y')),
         ]);
-
     }
+ 
 
     public function gerarRelatorioarp($id){
 

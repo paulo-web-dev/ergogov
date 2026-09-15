@@ -77,7 +77,7 @@ Route::get('/', function () {
     return redirect()->route('home'); 
 });
 
-
+ 
 //*Formulário de ARP
 Route::get('/pesquisa/arp/{token}',         [ArpConviteController::class, 'formToken'])->name('form-arp-token');
 Route::post('/pesquisa/arp/responder',      [ArpConviteController::class, 'cadFormToken'])->name('cad-form-arp-token');

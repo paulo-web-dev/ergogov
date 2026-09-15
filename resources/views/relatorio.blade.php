@@ -6,13 +6,17 @@
 <title>AET — {{ $empresa->nome }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="{{ url('/dist/js/calculo_ferramentas_relatorio.js') }}"></script>
-<script src="https://cdn.anychart.com/releases/v8/js/anychart-base.min.js"></script>
-<script src="https://cdn.anychart.com/releases/v8/js/anychart-cartesian-3d.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 /* ═══════════════════════════════════════════════════════════
-   AET — layout fluido: o conteúdo NÃO é mais recortado em caixas
-   de altura fixa. Cada bloco lógico começa em página nova e o
-   texto flui até acabar; linhas de tabela e cards não quebram.
+   AET — layout fluido.
+   Mudanças desta versão:
+   1) Mapeamento Ergonômico e Plano de Ação viram páginas em
+      PAISAGEM, com larguras fixas por coluna e sem quebra de
+      palavra no meio. Classificação normalizada em rótulo curto.
+   2) Fim das páginas em branco: nenhum bloco força quebra se
+      estiver vazio, anexos têm título+imagem colados e altura
+      máxima, e um passe final remove páginas sem conteúdo.
    ═══════════════════════════════════════════════════════════ */
 :root {
   --cor:   {{ $identidade->cor_principal }};
@@ -20,6 +24,11 @@
   --ink2:  #444;
   --linha: #cfcfcf;
   --fundo: #f3f4f6;
+  --ok:    #1b7f3b;
+  --baixo: #3f8f4f;
+  --mod:   #b58100;
+  --alto:  #c1571a;
+  --crit:  #b3261e;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
@@ -29,9 +38,9 @@ body {
 }
 .doc { max-width: 800px; margin: 24px auto; background: #fff; padding: 28px 32px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
 
-p  { margin: 0 0 10px; }
+p  { margin: 0 0 10px; orphans: 3; widows: 3; }
 ul { margin: 6px 0 10px 22px; padding: 0; }
-li { margin-bottom: 5px; }
+li { margin-bottom: 5px; orphans: 2; widows: 2; }
 a  { color: inherit; text-decoration: none; }
 a:hover { text-decoration: underline; }
 
@@ -48,6 +57,8 @@ a:hover { text-decoration: underline; }
 .page { break-before: page; page-break-before: always; }
 .page.first { break-before: auto; page-break-before: auto; }
 .bloco { break-inside: avoid; page-break-inside: avoid; }
+/* nunca forçar página nova para um contêiner vazio */
+.page:empty { display: none !important; break-before: auto; page-break-before: auto; }
 
 .titulo-secao {
   background: var(--cor); color: #fff; border-radius: 8px; text-align: center;
@@ -78,8 +89,12 @@ a:hover { text-decoration: underline; }
 table.tab { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 10px 0 16px; background: #fff; table-layout: fixed; }
 table.tab thead { display: table-header-group; }
 table.tab tr { break-inside: avoid; page-break-inside: avoid; }
-table.tab th { background: var(--cor); color: #fff; padding: 7px 8px; text-align: center; font-weight: 600; font-size: 9.5pt; border: 1px solid var(--cor); vertical-align: middle; }
-table.tab td { border: 1px solid var(--linha); padding: 6px 8px; vertical-align: top; text-align: left; word-wrap: break-word; overflow-wrap: anywhere; }
+table.tab th { background: var(--cor); color: #fff; padding: 7px 8px; text-align: center; font-weight: 600; font-size: 9.5pt; border: 1px solid var(--cor); vertical-align: middle; line-height: 1.2; }
+/* quebra só entre palavras; hifeniza quando não couber — nunca corta no meio */
+table.tab td {
+  border: 1px solid var(--linha); padding: 6px 8px; vertical-align: top; text-align: left;
+  overflow-wrap: break-word; word-break: normal; hyphens: auto; -webkit-hyphens: auto;
+}
 table.tab td.c { text-align: center; }
 table.tab tr:nth-child(even) td { background: #fafafa; }
 table.tab.auto { table-layout: auto; }
@@ -88,6 +103,23 @@ table.tab.compacta th, table.tab.compacta td { padding: 4px 5px; }
 
 /* Tabela chave/valor (identificação do posto) */
 table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fundo); }
+
+/* ── Tabelões em paisagem (Mapeamento / Plano de Ação) ── */
+table.tab.larga { font-size: 8pt; line-height: 1.3; }
+table.tab.larga th, table.tab.larga td { padding: 4px 6px; }
+table.tab.larga td { text-align: left; }
+table.tab.larga .nowrap { white-space: nowrap; }
+.nivel { display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 7.5pt; line-height: 1.2; white-space: nowrap; color: #fff; }
+.nivel.n-ok    { background: var(--ok); }
+.nivel.n-baixo { background: var(--baixo); }
+.nivel.n-mod   { background: var(--mod); }
+.nivel.n-alto  { background: var(--alto); }
+.nivel.n-crit  { background: var(--crit); }
+.nivel.n-na    { background: #6b7280; }
+.legenda-tab { font-size: 8pt; color: var(--ink2); margin-top: 6px; text-align: left; }
+.legenda-tab b { color: var(--ink); }
+.legenda-tab ul { margin: 4px 0 0 18px; }
+.legenda-tab li { margin-bottom: 2px; }
 
 /* ── Cards de conteúdo rico (campos HTML do cadastro) ── */
 .rich p { margin: 0 0 10px; }
@@ -104,9 +136,15 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
 /* ── Gráficos ── */
 .graficos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .grafico { border: 1px solid var(--linha); border-radius: 8px; padding: 8px; background: #fff; break-inside: avoid; }
-.grafico .canvas { width: 100%; height: 250px; }
+.grafico .canvas { position: relative; width: 100%; height: 250px; }
+.grafico .canvas canvas { width: 100% !important; height: 100% !important; }
 .grafico.largo { grid-column: 1 / -1; }
 .grafico.largo .canvas { height: 280px; }
+
+/* ── Anexos ── */
+#anexospage .bloco-anexo { break-inside: avoid; page-break-inside: avoid; text-align: center; margin-bottom: 14px; }
+#anexospage img { max-width: 100%; max-height: 195mm; object-fit: contain; }
+#anexospage h1, #anexospage h2, #anexospage h3, #anexospage h4, #anexospage .titulo-secao { break-after: avoid; page-break-after: avoid; }
 
 /* ── Assinaturas ── */
 .assinaturas { display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; margin-top: 32px; }
@@ -124,14 +162,25 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Barra de impressão ── */
-.print-bar { position: sticky; top: 0; z-index: 50; background: var(--cor); color: #fff; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-.print-bar button { background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.4); color: #fff; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: 600; }
+.print-bar { position: sticky; top: 0; z-index: 50; background: var(--cor); color: #fff; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px; flex-wrap: wrap; }
+.print-bar .acoes { display: flex; gap: 8px; }
+.print-bar button { background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.4); color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 12px; }
+.print-bar button:hover { background: rgba(255,255,255,.32); }
+
+/* aviso de orientação só na tela */
+.aviso-paisagem { font-size: 9pt; color: var(--ink2); font-style: italic; margin: 0 0 8px; }
 
 /* ═══════════════════════ IMPRESSÃO ═══════════════════════ */
 @media print {
-  @page { size: A4; margin: 30mm 14mm 20mm 14mm; }
+  /* páginas nomeadas: o corpo do laudo em retrato, os tabelões em paisagem.
+     Margens iguais nas duas para o cabeçalho fixo continuar alinhado. */
+  @page retrato  { size: A4 portrait;  margin: 30mm 14mm 20mm 14mm; }
+  @page paisagem { size: A4 landscape; margin: 30mm 14mm 20mm 14mm; }
+  .page            { page: retrato; }
+  .page.paisagem   { page: paisagem; }
+
   body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .print-bar, .loader-wrapper { display: none !important; }
+  .print-bar, .loader-wrapper, .aviso-paisagem { display: none !important; }
   .doc { max-width: none; margin: 0; padding: 0; box-shadow: none; }
   .capa { min-height: 0; }
 
@@ -144,6 +193,9 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
   .marca-dagua img { width: 100%; height: auto; }
 
   .grafico .canvas { height: 230px; }
+
+  /* nada de página em branco por bloco vazio */
+  .page:empty, .vazio { display: none !important; }
 }
 </style>
 </head>
@@ -157,14 +209,54 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
 
 <div class="print-bar">
   <span><strong>AET</strong> — {{ $empresa->nome }}</span>
-  <button onclick="window.print()">⬇ Imprimir / Salvar PDF</button>
+  <div class="acoes">
+    <button onclick="exportarCSV('tabela-mapeamento','mapeamento_ergonomico')">⤓ Mapeamento (CSV)</button>
+    <button onclick="exportarCSV('tabela-planoacao','plano_de_acao')">⤓ Plano de Ação (CSV)</button>
+    <button onclick="window.print()">⬇ Imprimir / Salvar PDF</button>
+  </div>
 </div>
 
 @php
   $temCabecalho = isset($empresa->cabecalho);
   $temRodape    = isset($empresa->rodape);
   $temMarca     = !empty($identidade->marca_dagua);
-  $upper = fn($s) => mb_strtoupper($s, 'UTF-8');
+  $upper = fn($s) => mb_strtoupper($s ?? '', 'UTF-8');
+
+  /* CNPJ formatado — o banco guarda só dígitos */
+  $fmtCnpj = function ($v) {
+      $d = preg_replace('/\D/', '', (string) $v);
+      return strlen($d) === 14
+        ? substr($d,0,2).'.'.substr($d,2,3).'.'.substr($d,5,3).'/'.substr($d,8,4).'-'.substr($d,12,2)
+        : $v;
+  };
+
+  /* Normalização do texto cru das ferramentas em rótulo curto + cor.
+     O texto original continua disponível no title da célula e na legenda. */
+  $nivel = function ($txt) {
+      $t = mb_strtolower(trim(strip_tags((string) $txt)), 'UTF-8');
+      if ($t === '') return ['rotulo' => '—', 'classe' => 'n-na'];
+      $tem = fn(...$p) => array_reduce($p, fn($c,$x) => $c || str_contains($t, $x), false);
+
+      if ($tem('imediatamente', 'risco muito alto', 'muito alto', 'inaceitável')) return ['rotulo' => 'Muito alto', 'classe' => 'n-crit'];
+      if ($tem('condição ergonômica ruim', 'condicao ergonomica ruim', 'inadequad'))            return ['rotulo' => 'Inadequado', 'classe' => 'n-crit'];
+      if ($tem('futuro próximo', 'futuro proximo', 'risco alto', 'elevado', 'em breve'))        return ['rotulo' => 'Alto',       'classe' => 'n-alto'];
+      if ($tem('moderad', 'mais estudos', 'investigar'))                                        return ['rotulo' => 'Moderado',   'classe' => 'n-mod'];
+      if ($tem('risco baixo', 'baixo risco', 'baixo'))                                          return ['rotulo' => 'Baixo',      'classe' => 'n-baixo'];
+      if ($tem('boa condição', 'boa condicao', 'aceitáv', 'aceitav', 'adequad', 'satisfatór'))  return ['rotulo' => 'Adequado',   'classe' => 'n-ok'];
+      return ['rotulo' => mb_strimwidth(trim(strip_tags((string) $txt)), 0, 28, '…', 'UTF-8'), 'classe' => 'n-na'];
+  };
+
+  /* Legenda: texto completo de cada classificação que aparece na tabela */
+  $legendaMapa = [];
+  foreach (($empresa->mapeamento ?? []) as $m) {
+      $bruto = trim(strip_tags((string) $m->classificacao));
+      if ($bruto === '') continue;
+      $n = $nivel($bruto);
+      $legendaMapa[$n['rotulo']] ??= ['classe' => $n['classe'], 'textos' => []];
+      if (!in_array($bruto, $legendaMapa[$n['rotulo']]['textos'], true)) {
+          $legendaMapa[$n['rotulo']]['textos'][] = $bruto;
+      }
+  }
 @endphp
 
 {{-- Cabeçalho / rodapé / marca d'água — repetidos em cada página na impressão --}}
@@ -173,7 +265,7 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
   <img src="/fotos-empresa-cabecalho/{{ $empresa->cabecalho->foto_empresa }}" alt="">
   <div class="meio">
     Análise Ergonômica do Trabalho<br>
-    {{ $empresa->nome }} — CNPJ: {{ $empresa->cnpj }}<br>
+    {{ $empresa->nome }} — CNPJ: {{ $fmtCnpj($empresa->cnpj) }}<br>
     {{ $empresa->periodo_inspecao }}
   </div>
   <img src="/fotos-empresa-produtor/{{ $empresa->cabecalho->foto_produtor }}" alt="">
@@ -260,20 +352,22 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
     <tr><td>Cidade/Estado</td><td>{{ $empresa->cidade }} – {{ $empresa->estado }}</td></tr>
     <tr><td>CEP</td><td>{{ $empresa->cep }}</td></tr>
     <tr><td>Telefone</td><td>{{ $empresa->telefone }}</td></tr>
-    <tr><td>CNPJ</td><td>{{ $empresa->cnpj }}</td></tr>
+    <tr><td>CNPJ</td><td>{{ $fmtCnpj($empresa->cnpj) }}</td></tr>
     <tr><td>Inscrição Estadual</td><td>{{ $empresa->inscricao_estadual ?? $empresa->ie ?? '—' }}</td></tr>
-    <tr><td>Grau de Risco</td><td>{{ $empresa->grau_de_risco }}</td></tr>
-    <tr><td>CNAE</td><td id="atividadecapa"><script>atividadecapa({{ $empresa->cnpj }})</script></td></tr>
+    <tr><td>Grau de Risco</td><td>{{ filled($empresa->grau_de_risco) ? $empresa->grau_de_risco : '—' }}</td></tr>
+    <tr><td>CNAE</td><td id="atividadecapa"><script>atividadecapa('{{ preg_replace('/\D/', '', (string) $empresa->cnpj) }}')</script></td></tr>
     <tr><td>Ramo de Atividade</td><td>{{ $empresa->setor }}</td></tr>
     <tr><td>Período de Inspeção</td><td>{{ $empresa->periodo_inspecao }}</td></tr>
   </table>
 </div>
 
 {{-- ═══════════════════ INTRODUÇÃO ═══════════════════ --}}
+@if(filled($empresa->introducao->introducao ?? null))
 <div class="page" id="introducao">
   <div class="titulo-secao">INTRODUÇÃO</div>
-  <div class="rich">{!! $empresa->introducao->introducao ?? '' !!}</div>
+  <div class="rich">{!! $empresa->introducao->introducao !!}</div>
 </div>
+@endif
 
 {{-- ═══════════════════ AET ═══════════════════ --}}
 <div class="page" id="analise">
@@ -323,11 +417,19 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
         "A metodologia de trabalho baseia-se: <div class='bloco' style='text-align:center;margin:10px 0;'><img src='https://unyflex.com.br/storage/banners/ergo.jpeg' alt='Metodologia' style='max-width:280px'></div>",
         $texto);
     }
+    /* Se o texto do cadastro já traz esses dois tópicos, não repetir os parágrafos fixos abaixo */
+    $semTexto   = mb_strtolower(strip_tags($texto), 'UTF-8');
+    $jaTemRitmo = str_contains($semTexto, 'ritmo de trabalho');
+    $jaTemCog   = str_contains($semTexto, 'exigências cognitivas') || str_contains($semTexto, 'exigencias cognitivas');
   @endphp
   <div class="rich">{!! $texto !!}</div>
 
+  @unless($jaTemRitmo)
   <p class="ferramenta"><b>RITMO DE TRABALHO</b> – Existe uma distinção entre ritmo e cadência. A cadência tem um aspecto quantitativo, o ritmo qualitativo. A cadência refere-se à velocidade dos movimentos que se repetem em uma dada unidade de tempo; o ritmo é a maneira como as cadências são ajustadas ou arranjadas: pode ser livre (quando o indivíduo tem autonomia para determinar sua própria cadência) ou imposto (por uma máquina, pela esteira da linha de montagem e até por incentivos à produção) – Teiger, 1985. Na empresa encontramos: o trabalho livre.</p>
+  @endunless
+  @unless($jaTemCog)
   <p class="ferramenta"><b>EXIGÊNCIAS COGNITIVAS</b> – Detectamos que, quanto ao conhecimento e à percepção para a realização das atividades, a maioria dos colaboradores tinha um bom preparo para a efetivação do trabalho.</p>
+  @endunless
 
   <div class="titulo-secao sub">OBSERVAÇÕES IN LOCO E FOTOS – FERRAMENTAS ERGONÔMICAS</div>
   <p>Inicialmente foram realizadas as observações referentes à ergonomia dos postos de trabalho (condições dos mobiliários, das ferramentas, dos equipamentos, das posturas de trabalho, da iluminação, do ruído).</p>
@@ -346,13 +448,15 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
 </div>
 
 {{-- ═══════════════════ DEMANDA ═══════════════════ --}}
+@if(filled($empresa->demanda->demanda ?? null))
 <div class="page" id="demanda">
   <div class="titulo-secao">DEMANDA</div>
-  <div class="rich">{!! $empresa->demanda->demanda ?? '' !!}</div>
+  <div class="rich">{!! $empresa->demanda->demanda !!}</div>
 </div>
+@endif
 
 {{-- ═══════════════════ ANÁLISE GLOBAL ═══════════════════ --}}
-@if(isset($empresa->analise))
+@if(filled($empresa->analise->analise ?? null))
 <div class="page" id="analiseglobal">
   <div class="titulo-secao">ANÁLISE GLOBAL DA EMPRESA</div>
   <div class="rich">{!! $empresa->analise->analise !!}</div>
@@ -414,7 +518,7 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
   <div class="titulo-secao sub">DESCRIÇÃO DA TAREFA</div>
   <div class="rich">{!! $subsetor->descricao !!}</div>
 
-  @if(isset($subsetor->analiseAtividade))
+  @if(filled($subsetor->analiseAtividade->analise ?? null))
   <div class="titulo-secao sub">ANÁLISE DA ATIVIDADE</div>
   <div class="rich">{!! $subsetor->analiseAtividade->analise !!}</div>
   @endif
@@ -464,18 +568,18 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
 <div class="page">
   <div class="titulo-secao">CARACTERÍSTICAS DA POPULAÇÃO</div>
   <div class="graficos-grid">
-    <div class="grafico"><div class="legenda-grafico">Gênero</div><div class="canvas" id="genero{{ $subsetor->id }}"></div></div>
-    <div class="grafico"><div class="legenda-grafico">Faixa Etária</div><div class="canvas" id="faixaetaria{{ $subsetor->id }}"></div></div>
-    <div class="grafico"><div class="legenda-grafico">Tempo de Admissão</div><div class="canvas" id="tempoadmissao{{ $subsetor->id }}"></div></div>
-    <div class="grafico"><div class="legenda-grafico">Escolaridade</div><div class="canvas" id="escolaridade{{ $subsetor->id }}"></div></div>
+    <div class="grafico"><div class="legenda-grafico">Gênero</div><div class="canvas"><canvas id="genero{{ $subsetor->id }}"></canvas></div></div>
+    <div class="grafico"><div class="legenda-grafico">Faixa Etária</div><div class="canvas"><canvas id="faixaetaria{{ $subsetor->id }}"></canvas></div></div>
+    <div class="grafico"><div class="legenda-grafico">Tempo de Admissão</div><div class="canvas"><canvas id="tempoadmissao{{ $subsetor->id }}"></canvas></div></div>
+    <div class="grafico"><div class="legenda-grafico">Escolaridade</div><div class="canvas"><canvas id="escolaridade{{ $subsetor->id }}"></canvas></div></div>
   </div>
   <script>
-    anychart.onDocumentReady(function () {
+    filaGraficos.push(function () {
       var g = graficos{{ $subsetor->id }};
-      colunas3d('genero{{ $subsetor->id }}',        g.genero.labels,        g.genero.data);
-      colunas3d('faixaetaria{{ $subsetor->id }}',   g.faixaetaria.labels,   g.faixaetaria.data);
-      colunas3d('tempoadmissao{{ $subsetor->id }}', g.tempoadmissao.labels, g.tempoadmissao.data);
-      colunas3d('escolaridade{{ $subsetor->id }}',  g.escolaridade.labels,  g.escolaridade.data);
+      barras('genero{{ $subsetor->id }}',        g.genero.labels,        g.genero.data);
+      barras('faixaetaria{{ $subsetor->id }}',   g.faixaetaria.labels,   g.faixaetaria.data);
+      barras('tempoadmissao{{ $subsetor->id }}', g.tempoadmissao.labels, g.tempoadmissao.data);
+      barras('escolaridade{{ $subsetor->id }}',  g.escolaridade.labels,  g.escolaridade.data);
     });
   </script>
 </div>
@@ -501,18 +605,18 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
   <div class="graficos-grid">
     <div class="grafico largo">
       <div class="legenda-grafico">{{ $subsetor->dadossaude->titulo }}</div>
-      <div class="canvas" id="dadosaude{{ $subsetor->id }}"></div>
+      <div class="canvas"><canvas id="dadosaude{{ $subsetor->id }}"></canvas></div>
     </div>
     <div class="grafico largo">
       <div class="legenda-grafico" id="segmentocorporal{{ $subsetor->id }}">{{ count($segDados) ? 'Segmento Corporal' : 'Segmento Corporal — Não há queixas' }}</div>
-      @if(count($segDados))<div class="canvas" id="segmento{{ $subsetor->id }}"></div>@endif
+      @if(count($segDados))<div class="canvas"><canvas id="segmento{{ $subsetor->id }}"></canvas></div>@endif
     </div>
   </div>
   <script>
-    anychart.onDocumentReady(function () {
-      colunas3d('dadosaude{{ $subsetor->id }}', ['Sim','Não'], [{{ $pSim }}, {{ $pNao }}]);
+    filaGraficos.push(function () {
+      barras('dadosaude{{ $subsetor->id }}', ['Sim','Não'], [{{ $pSim }}, {{ $pNao }}]);
       @if(count($segDados))
-      colunas3d('segmento{{ $subsetor->id }}', @json(array_keys($segDados)), @json(array_values($segDados)), 8);
+      barras('segmento{{ $subsetor->id }}', @json(array_keys($segDados)), @json(array_values($segDados)), 8);
       @endif
     });
   </script>
@@ -605,18 +709,19 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
       <tr>
         <td><b>CHECKLIST DE ANÁLISE DAS CONDIÇÕES DO POSTO DE TRABALHO AO COMPUTADOR</b><br>Atividade: {{ $subsetor->ChecklistCadeira->atividade }}.</td>
         <td>{{ $subsetor->ChecklistCadeira->resultado }}</td>
-        <td>Boa Condição Ergonômica</td>
+        {{-- antes era o texto fixo "Boa Condição Ergonômica", que contradizia o resultado --}}
+        <td>{{ $subsetor->ChecklistCadeira->membro ?? $subsetor->ChecklistCadeira->regiao ?? 'Pescoço, Ombros, Coluna, Punhos e Mãos' }}</td>
       </tr>
       @endif
     </tbody>
   </table>
 
-  @if(isset($subsetor->conclusao->conclusao))
+  @if(filled($subsetor->conclusao->conclusao ?? null))
   <div class="titulo-secao sub">CONCLUSÃO</div>
   <div class="rich">{!! $subsetor->conclusao->conclusao !!}</div>
   @endif
 </div>
-@elseif(isset($subsetor->conclusao->conclusao))
+@elseif(filled($subsetor->conclusao->conclusao ?? null))
 <div class="page">
   <div class="titulo-secao">CONCLUSÃO</div>
   <div class="rich">{!! $subsetor->conclusao->conclusao !!}</div>
@@ -639,51 +744,87 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
 @endforeach {{-- setores --}}
 @endforeach {{-- áreas --}}
 
-{{-- ═══════════════════ MAPEAMENTO ERGONÔMICO ═══════════════════ --}}
+{{-- ═══════════════════ MAPEAMENTO ERGONÔMICO (paisagem) ═══════════════════ --}}
 @if(count($empresa->mapeamento) > 0)
-<div class="page" id="mapeamentoergo">
+<div class="page paisagem" id="mapeamentoergo">
   <div class="titulo-secao">MAPEAMENTO ERGONÔMICO</div>
-  <table class="tab compacta">
+  <p class="aviso-paisagem">Esta seção é impressa em orientação paisagem.</p>
+  <table class="tab larga" id="tabela-mapeamento">
     <thead>
       <tr>
-        <th style="width:9%;">Área</th><th style="width:10%;">Setor</th><th style="width:11%;">Posto de Trabalho</th>
-        <th style="width:14%;">Função</th><th style="width:16%;">Atividade</th><th style="width:9%;">Postura</th>
-        <th style="width:12%;">Exigência da Atividade</th><th style="width:9%;">Sobrecarga</th><th style="width:10%;">Classificação</th>
+        <th style="width:8%;">Área</th>
+        <th style="width:9%;">Setor</th>
+        <th style="width:12%;">Posto de Trabalho</th>
+        <th style="width:13%;">Função</th>
+        <th style="width:17%;">Atividade</th>
+        <th style="width:7%;">Postura</th>
+        <th style="width:12%;">Exigência da Atividade</th>
+        <th style="width:12%;">Sobrecarga</th>
+        <th style="width:10%;">Classificação</th>
       </tr>
     </thead>
     <tbody>
       @foreach($empresa->mapeamento as $m)
+      @php $n = $nivel($m->classificacao); @endphp
       <tr>
-        <td>{{ $m->area }}</td><td>{{ $m->setor }}</td><td>{{ $m->posto_trabalho }}</td>
-        <td>{{ $m->funcao }}</td><td>{{ $m->atividade }}</td><td>{{ $m->postura }}</td>
-        <td>{{ $m->exigencia }}</td><td>{{ $m->sobrecarga }}</td>
-        <td class="c" id="classificacao{{ $m->id }}">{{ $m->classificacao }}</td>
+        <td>{{ $m->area }}</td>
+        <td>{{ $m->setor }}</td>
+        <td>{{ $m->posto_trabalho }}</td>
+        <td>{{ $m->funcao }}</td>
+        <td>{{ $m->atividade }}</td>
+        <td>{{ $m->postura }}</td>
+        <td>{{ $m->exigencia }}</td>
+        <td>{{ $m->sobrecarga }}</td>
+        <td class="c" data-csv="{{ trim(strip_tags((string) $m->classificacao)) }}" title="{{ trim(strip_tags((string) $m->classificacao)) }}">
+          <span class="nivel {{ $n['classe'] }}">{{ $n['rotulo'] }}</span>
+        </td>
       </tr>
-      <script>classificacao('{{ addslashes($m->classificacao) }}', '{{ $m->id }}');</script>
       @endforeach
     </tbody>
   </table>
+
+  @if(count($legendaMapa))
+  <div class="legenda-tab bloco">
+    <b>Legenda da coluna Classificação</b> — resultado integral emitido por cada ferramenta:
+    <ul>
+      @foreach($legendaMapa as $rotulo => $info)
+      <li><span class="nivel {{ $info['classe'] }}">{{ $rotulo }}</span> — {{ implode(' / ', $info['textos']) }}</li>
+      @endforeach
+    </ul>
+  </div>
+  @endif
 </div>
 @endif
 
-{{-- ═══════════════════ PLANO DE AÇÃO ═══════════════════ --}}
+{{-- ═══════════════════ PLANO DE AÇÃO (paisagem) ═══════════════════ --}}
 @if(count($empresa->planodeacao) > 0)
-<div class="page" id="planoacao">
+<div class="page paisagem" id="planoacao">
   <div class="titulo-secao">PLANO DE AÇÃO</div>
-  <table class="tab compacta">
+  <p class="aviso-paisagem">Esta seção é impressa em orientação paisagem.</p>
+  <table class="tab larga" id="tabela-planoacao">
     <thead>
       <tr>
-        <th style="width:9%;">Área</th><th style="width:10%;">Setor</th><th style="width:11%;">Posto de Trabalho</th>
-        <th style="width:13%;">Função</th><th style="width:13%;">Exigência da Atividade</th><th>Melhoria</th>
-        <th style="width:9%;">Viabilidade</th><th style="width:8%;">Prazo</th>
+        <th style="width:8%;">Área</th>
+        <th style="width:9%;">Setor</th>
+        <th style="width:12%;">Posto de Trabalho</th>
+        <th style="width:12%;">Função</th>
+        <th style="width:12%;">Exigência da Atividade</th>
+        <th style="width:29%;">Melhoria</th>
+        <th style="width:9%;">Viabilidade</th>
+        <th style="width:9%;">Prazo</th>
       </tr>
     </thead>
     <tbody>
       @foreach($empresa->planodeacao as $p)
       <tr>
-        <td>{{ $p->area }}</td><td>{{ $p->setor }}</td><td>{{ $p->posto_trabalho }}</td>
-        <td>{{ $p->funcao }}</td><td>{{ $p->exigencia }}</td><td>{{ $p->recomendacao }}</td>
-        <td class="c">{{ $p->viabilidade }}</td><td class="c">{{ $p->prazo }}</td>
+        <td>{{ $p->area }}</td>
+        <td>{{ $p->setor }}</td>
+        <td>{{ $p->posto_trabalho }}</td>
+        <td>{{ $p->funcao }}</td>
+        <td>{{ $p->exigencia }}</td>
+        <td>{{ $p->recomendacao }}</td>
+        <td class="c">{{ filled($p->viabilidade) ? $p->viabilidade : '—' }}</td>
+        <td class="c">{{ filled($p->prazo) ? $p->prazo : '—' }}</td>
       </tr>
       @endforeach
     </tbody>
@@ -692,10 +833,12 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
 @endif
 
 {{-- ═══════════════════ DISPOSIÇÕES FINAIS ═══════════════════ --}}
+@if(filled($empresa->disposicao->disposicao ?? null))
 <div class="page" id="disposicoes2">
   <div class="titulo-secao">DISPOSIÇÕES FINAIS</div>
-  <div class="rich">{!! $empresa->disposicao->disposicao ?? '' !!}</div>
+  <div class="rich">{!! $empresa->disposicao->disposicao !!}</div>
 </div>
+@endif
 
 {{-- ═══════════════════ ENCERRAMENTO ═══════════════════ --}}
 <div class="page" id="encerramento2">
@@ -728,44 +871,173 @@ table.kv td:first-child { width: 170px; font-weight: 600; background: var(--fund
 </div>{{-- .doc --}}
 
 <script>
-// ── Gráfico de colunas 3D (AnyChart) — um helper só para todos os gráficos ──
-function colunas3d(containerId, labels, values, fontSize) {
-  var el = document.getElementById(containerId);
-  if (!el || !labels || !labels.length) return;
-  var paleta = ['#FF5733','#FFC300','#3498DB','#32CD32','#FF9900','#66CCCC','#993366','#996633','#0099CC'];
-  var data = labels.map(function (l, i) { return { x: l, value: values[i], fill: paleta[i % paleta.length] }; });
+/* ═══════════════ Gráficos (Chart.js) ═══════════════
+   Substitui o AnyChart, que estampava "UNLICENSED / Trial Use Only"
+   em cima de todos os gráficos do laudo. Mesma assinatura de antes:
+   barras(idDoCanvas, labels, valores, tamanhoDaFonte). */
+var filaGraficos = [];
 
-  var chart = anychart.column3d();
-  chart.animation(false);                       // sem animação: imprime já renderizado
-  chart.column(data);
-  chart.getSeries(0).labels().enabled(true).position('top').format('{%Value}%').fontSize(fontSize || 10);
-  chart.xAxis().labels().fontSize(fontSize || 10).wordWrap('break-word').wordBreak('break-all');
-  chart.yAxis().labels().format('{%Value}%');
-  chart.yScale().minimum(0).maximum(100);
-  chart.background().fill('#f7f7f7');
-  chart.tooltip().format('{%Value}%');
-  chart.credits().enabled(false);
-  chart.container(containerId);
-  chart.draw();
+function barras(canvasId, labels, values, fontSize) {
+  var el = document.getElementById(canvasId);
+  if (!el || !labels || !labels.length) return;
+
+  var paleta = ['#FF5733','#FFC300','#3498DB','#32CD32','#FF9900','#66CCCC','#993366','#996633','#0099CC'];
+  var fonte  = fontSize || 10;
+
+  // plugin local: escreve o valor em cima de cada barra
+  var rotulos = {
+    id: 'rotulosNoTopo',
+    afterDatasetsDraw: function (chart) {
+      var ctx = chart.ctx;
+      ctx.save();
+      ctx.font = '600 ' + fonte + 'px Poppins, Arial, sans-serif';
+      ctx.fillStyle = '#111';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      chart.getDatasetMeta(0).data.forEach(function (barra, i) {
+        ctx.fillText(chart.data.datasets[0].data[i] + '%', barra.x, barra.y - 4);
+      });
+      ctx.restore();
+    }
+  };
+
+  new Chart(el.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: labels.map(function (_, i) { return paleta[i % paleta.length]; }),
+        borderColor: 'rgba(0,0,0,.15)',
+        borderWidth: 1,
+        borderRadius: 3,
+        maxBarThickness: 70
+      }]
+    },
+    options: {
+      animation: false,
+      responsive: true,
+      maintainAspectRatio: false,
+      devicePixelRatio: 3,               // impressão nítida
+      layout: { padding: { top: 18 } },
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: fonte, family: 'Poppins, Arial, sans-serif' }, autoSkip: false, maxRotation: 0, minRotation: 0 } },
+        y: { min: 0, max: 100, ticks: { stepSize: 25, font: { size: fonte }, callback: function (v) { return v + '%'; } }, grid: { color: '#e5e7eb' } }
+      }
+    },
+    plugins: [rotulos]
+  });
 }
 
-// ── Estimativa do nº de páginas (A4, área útil ≈ 247mm ≈ 934px) ──
-function estimarPaginas() {
-  var util = 934, total = 0;
+/* ═══════════════ Anexos: título e imagem sempre juntos ═══════════════
+   O ver_ferramentas injeta título + imagem soltos; quando a imagem não
+   cabia embaixo do título, o Chrome quebrava a página e sobrava folha
+   em branco. Aqui cada par vira um bloco indivisível. */
+function normalizarAnexos() {
+  var box = document.getElementById('anexospage');
+  if (!box) return;
+
+  box.querySelectorAll('img').forEach(function (img) {
+    img.style.maxWidth  = '100%';
+    img.style.maxHeight = '195mm';
+    img.style.objectFit = 'contain';
+  });
+
+  var filhos = Array.prototype.slice.call(box.children);
+  filhos.forEach(function (el) {
+    if (el.classList && el.classList.contains('bloco-anexo')) return;
+    var ehTitulo = /^H[1-6]$/.test(el.tagName) || (el.classList && el.classList.contains('titulo-secao'));
+    if (!ehTitulo) return;
+
+    var wrap = document.createElement('div');
+    wrap.className = 'bloco-anexo';
+    el.parentNode.insertBefore(wrap, el);
+    wrap.appendChild(el);
+
+    // agrega o que vier depois até o próximo título
+    var prox = wrap.nextElementSibling;
+    while (prox) {
+      var proxEhTitulo = /^H[1-6]$/.test(prox.tagName) || (prox.classList && prox.classList.contains('titulo-secao'));
+      if (proxEhTitulo) break;
+      var seguinte = prox.nextElementSibling;
+      wrap.appendChild(prox);
+      prox = seguinte;
+    }
+  });
+}
+
+/* ═══════════════ Remove páginas sem conteúdo ═══════════════ */
+function removerPaginasVazias() {
   document.querySelectorAll('.page').forEach(function (p) {
+    var temTexto = p.textContent.replace(/\s+/g, '') !== '';
+    var temMidia = p.querySelector('img, canvas, svg, table');
+    if (!temTexto && !temMidia) p.remove();
+  });
+}
+
+/* ═══════════════ Contagem de páginas (retrato + paisagem) ═══════════════ */
+function estimarPaginas() {
+  var utilRetrato  = 934;   // 247mm de área útil ≈ 934px
+  var utilPaisagem = 570;   // A4 deitado com as mesmas margens
+  var total = 0;
+  document.querySelectorAll('.page').forEach(function (p) {
+    var util = p.classList.contains('paisagem') ? utilPaisagem : utilRetrato;
     total += Math.max(1, Math.ceil(p.getBoundingClientRect().height / util));
   });
   return total;
 }
 
+/* ═══════════════ Exportar tabela para CSV (abre limpo no Excel) ═══════════════ */
+function exportarCSV(tabelaId, nomeArquivo) {
+  var tab = document.getElementById(tabelaId);
+  if (!tab) { alert('Tabela não encontrada nesta página.'); return; }
+
+  var linhas = [];
+  tab.querySelectorAll('tr').forEach(function (tr) {
+    var cels = [];
+    tr.querySelectorAll('th, td').forEach(function (c) {
+      var txt = c.getAttribute('data-csv') || c.textContent;
+      txt = txt.replace(/\s+/g, ' ').trim().replace(/"/g, '""');
+      cels.push('"' + txt + '"');
+    });
+    if (cels.length) linhas.push(cels.join(';'));
+  });
+
+  var blob = new Blob(['\ufeff' + linhas.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nomeArquivo + '.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 window.addEventListener('load', function () {
-  var esconder = function () {
-    document.getElementById('loader').style.display = 'none';
+  // 1) desenha os gráficos
+  filaGraficos.forEach(function (fn) { try { fn(); } catch (e) { console.error(e); } });
+
+  // 2) espera o ver_ferramentas montar os anexos, depois arruma tudo
+  setTimeout(function () {
+    try { normalizarAnexos(); } catch (e) { console.error(e); }
+    removerPaginasVazias();
+
     var total = estimarPaginas();
-    document.getElementById('paginas').textContent = total;
-    if (typeof ver_ferramentas === 'function') { ver_ferramentas(total); }
-  };
-  setTimeout(esconder, 1200);
+    var alvo = document.getElementById('paginas');
+    if (alvo) alvo.textContent = total;
+
+    document.getElementById('loader').style.display = 'none';
+  }, 1400);
+
+  // ver_ferramentas continua sendo chamado como antes
+  if (typeof ver_ferramentas === 'function') {
+    try { ver_ferramentas(estimarPaginas()); } catch (e) { console.error(e); }
+    setTimeout(function () {
+      try { normalizarAnexos(); } catch (e) {}
+      removerPaginasVazias();
+      var alvo = document.getElementById('paginas');
+      if (alvo) alvo.textContent = estimarPaginas();
+    }, 1800);
+  }
 });
 </script>
 </body>

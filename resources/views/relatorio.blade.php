@@ -7,6 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="{{ url('/dist/js/calculo_ferramentas_relatorio.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{{-- a fila precisa existir ANTES dos <script> inline de cada setor, que fazem push nela --}}
+<script>window.filaGraficos = window.filaGraficos || [];</script>
 <style>
 /* ═══════════════════════════════════════════════════════════
    AET — layout fluido.
@@ -875,7 +877,7 @@ table.tab.larga .nowrap { white-space: nowrap; }
    Substitui o AnyChart, que estampava "UNLICENSED / Trial Use Only"
    em cima de todos os gráficos do laudo. Mesma assinatura de antes:
    barras(idDoCanvas, labels, valores, tamanhoDaFonte). */
-var filaGraficos = [];
+var filaGraficos = window.filaGraficos || (window.filaGraficos = []);
 
 function barras(canvasId, labels, values, fontSize) {
   var el = document.getElementById(canvasId);
